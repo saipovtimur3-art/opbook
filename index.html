@@ -1575,8 +1575,21 @@ const BH_PHOTOS = [
     });
 
     function wireUpIdentity(){
+      // if the link came from an email (recovery or invite), GoTrue logs the
+      // user in automatically without prompting for a new password. Detect
+      // that case up front so we can force the "set password" screen open.
+      const cameFromEmailLink = /type=(recovery|invite|signup)/.test(location.hash);
+
       window.netlifyIdentity.on('init', user => { user ? showApp() : showGate(); });
-      window.netlifyIdentity.on('login', () => { showApp(); window.netlifyIdentity.close(); });
+      window.netlifyIdentity.on('login', () => {
+        showApp();
+        if(cameFromEmailLink){
+          // force the account settings panel so the person can set their own password
+          window.netlifyIdentity.open('user');
+        } else {
+          window.netlifyIdentity.close();
+        }
+      });
       window.netlifyIdentity.on('logout', () => { showGate(); });
       window.netlifyIdentity.on('open', () => { gate.style.display = 'none'; });
       window.netlifyIdentity.on('close', () => { if(!window.netlifyIdentity.currentUser()) showGate(); });
