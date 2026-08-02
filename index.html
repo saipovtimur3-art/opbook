@@ -417,9 +417,13 @@ const BH_PHOTOS = [
     const percentPlan1 = totalPlan1Rev>0 ? (totalRevenue/totalPlan1Rev*100) : null;
     const lastFilledDate = filledRows.length ? filledRows[filledRows.length-1][COL.date] : null;
 
+    const headerRow = rows[2] || [];
+    const plan1RateMatch = (headerRow[COL.plan1Rev]||'').match(/(\d+(?:[.,]\d+)?)/);
+    const plan1Rate = plan1RateMatch ? parseNum(plan1RateMatch[1]) : null;
+
     const debug = { totalRows: rows.length, dailyCount: dailyRows.length, filledCount0: filledRows.length, sampleDaily: dailyRows.slice(0,3) };
 
-    return { totalRevenue, totalChecks, avgCheck, avgSPP, avgPassengers, plan1Rate:33, percentPlan1, lastFilledDate, filledCount: filledRows.length, fetchedAt: new Date(), debug };
+    return { totalRevenue, totalChecks, avgCheck, avgSPP, avgPassengers, plan1Rate, percentPlan1, lastFilledDate, filledCount: filledRows.length, fetchedAt: new Date(), debug };
   }
 
   const nav = document.getElementById('ob-nav');
