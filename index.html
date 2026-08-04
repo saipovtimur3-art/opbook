@@ -172,6 +172,40 @@
   .ob-stat-val{ font-size:24px; font-weight:800; }
   .ob-stat-label{ font-size:11px; color:#8a8a90; text-transform:uppercase; letter-spacing:.06em;}
 
+  .ob-hero{
+    border-radius:18px; padding:28px 26px; margin-bottom:16px; color:#fff; position:relative; overflow:hidden;
+  }
+  .ob-hero-eyebrow{ font-size:11px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.85; font-weight:700; margin-bottom:6px;}
+  .ob-hero-title{ font-family:'Archivo Black','Arial Black',sans-serif; font-size:26px; line-height:1.15; margin:0 0 8px; max-width:520px;}
+  .ob-hero-sub{ font-size:13.5px; opacity:0.92; max-width:480px; line-height:1.5; margin:0;}
+  .ob-hero-founders{ display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+  .ob-hero-founder{ font-size:11.5px; background:rgba(255,255,255,0.16); border:1px solid rgba(255,255,255,0.3); border-radius:20px; padding:5px 12px; }
+
+  .ob-timeline{ position:relative; padding-left:26px; margin:6px 0 18px; }
+  .ob-timeline::before{ content:''; position:absolute; left:6px; top:6px; bottom:6px; width:2px; background:linear-gradient(var(--accent), rgba(20,23,26,0.08)); }
+  .ob-timeline-item{ position:relative; padding-bottom:20px; }
+  .ob-timeline-item:last-child{ padding-bottom:0; }
+  .ob-timeline-dot{ position:absolute; left:-26px; top:2px; width:13px; height:13px; border-radius:50%; background:var(--accent); border:3px solid var(--paper); box-shadow:0 0 0 1px var(--accent); }
+  .ob-timeline-year{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--accent); font-weight:700; letter-spacing:0.04em; }
+  .ob-timeline-title{ font-size:15px; font-weight:700; margin:2px 0 4px; }
+  .ob-timeline-text{ font-size:13.5px; color:#555; line-height:1.55; max-width:600px; }
+
+  .ob-signature-box{
+    display:flex; align-items:center; gap:14px; background:var(--paper-2); border:1px solid rgba(20,23,26,0.07);
+    border-radius:14px; padding:16px 18px; box-shadow:0 1px 2px rgba(20,23,26,0.03);
+  }
+  .ob-signature-icon{ font-size:30px; flex-shrink:0; }
+  .ob-signature-label{ font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:#8a8a90; font-weight:700; margin-bottom:3px;}
+  .ob-signature-text{ font-size:14px; font-weight:600; }
+
+  .ob-photo-placeholder{
+    aspect-ratio:16/9; border-radius:14px; display:flex; align-items:center; justify-content:center;
+    color:rgba(255,255,255,0.7); font-size:12px; text-align:center; padding:16px; margin-bottom:16px;
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0 2px, transparent 2px 14px);
+  }
+  .ob-source-list{ font-size:11px; color:#999; margin-top:4px; }
+  .ob-source-list a{ color:#999; }
+
   .ob-alert{ background:#FBEAEA; border:1px solid #E7B9BA; border-left:4px solid var(--red-alert); border-radius:8px; padding:14px 16px; margin-bottom:10px;}
   .ob-alert-title{ color:var(--red-alert); font-weight:700; font-size:13px; margin:0 0 4px;}
 
@@ -280,34 +314,37 @@ const BH_PHOTOS = [
     { id:"appearance", code:"06", icon:"👗", name:"Внешний вид", accent:"point",
       desc:"Стандарт формы и внешнего вида сотрудников — по точке.",
       render: renderAppearance, group:"point" },
-    { id:"staff", code:"07", icon:"👥", name:"Руководство", accent:"", group:"common",
+    { id:"history", code:"07", icon:"📖", name:"История точки", accent:"point",
+      desc:"Как появился бренд и как точка пришла в Внуково.",
+      render: renderHistory, group:"point" },
+    { id:"staff", code:"08", icon:"👥", name:"Руководство", accent:"", group:"common",
       desc:"Контакты руководства и структуры управления.",
       render: renderStaff },
-    { id:"suppliers", code:"08", icon:"🚚", name:"Поставщики", accent:"", group:"common",
+    { id:"suppliers", code:"09", icon:"🚚", name:"Поставщики", accent:"", group:"common",
       desc:"Контакты поставщиков по категориям, отсрочка, дни отгрузки.",
       render: renderSuppliers },
-    { id:"contacts", code:"09", icon:"📞", name:"Технические службы", accent:"", group:"common",
+    { id:"contacts", code:"10", icon:"📞", name:"Технические службы", accent:"", group:"common",
       desc:"Контакты сервисных служб — общие для обеих точек.",
       render: renderTechContacts },
-    { id:"emergency", code:"10", icon:"🚨", name:"ЧС", accent:"", group:"common",
+    { id:"emergency", code:"11", icon:"🚨", name:"ЧС", accent:"", group:"common",
       desc:"Нештатные ситуации, экстренные контакты.",
       render: renderEmergency },
-    { id:"airport_rules", code:"11", icon:"🛫", name:"Правила аэропорта", accent:"", group:"common",
+    { id:"airport_rules", code:"12", icon:"🛫", name:"Правила аэропорта", accent:"", group:"common",
       desc:"Что нужно знать на смене о сбойных ситуациях в Внуково (регламент РГ-02.06-12).",
       render: renderAirportRules },
-    { id:"manager", code:"12", icon:"👔", name:"Управляющий", accent:"accent-mobar", group:"common",
+    { id:"manager", code:"13", icon:"👔", name:"Управляющий", accent:"accent-mobar", group:"common",
       desc:"Ежедневный, еженедельный и ежемесячный чек-лист управляющего.",
       render: renderManagerTasks },
-    { id:"motivation", code:"13", icon:"🏆", name:"Мотивация", accent:"", group:"common",
+    { id:"motivation", code:"14", icon:"🏆", name:"Мотивация", accent:"", group:"common",
       desc:"KPI, конкурсы, премии.",
       render: renderMotivation },
-    { id:"training", code:"14", icon:"📚", name:"Обучение", accent:"", group:"common",
+    { id:"training", code:"15", icon:"📚", name:"Обучение", accent:"", group:"common",
       desc:"План стажировки нового сотрудника.",
       render: renderTraining },
-    { id:"access", code:"15", icon:"🔐", name:"Доступы", accent:"", group:"common",
+    { id:"access", code:"16", icon:"🔐", name:"Доступы", accent:"", group:"common",
       desc:"Ключи и доступы к системам — конфиденциально.",
       render: renderAccess },
-    { id:"sheets", code:"16", icon:"📁", name:"Все таблицы", accent:"", group:"common",
+    { id:"sheets", code:"17", icon:"📁", name:"Все таблицы", accent:"", group:"common",
       desc:"Все Google-таблицы, которые нужны управляющему, в одном месте.",
       render: renderSheetsHub },
   ];
@@ -1032,6 +1069,88 @@ const BH_PHOTOS = [
         <div style="font-size:13px;color:#555;">${r[1]}</div>
       </div>`).join('');
     body.appendChild(wrap);
+  }
+
+  const POINT_HISTORY = {
+    bh: {
+      eyebrow: "С 2015 года",
+      title: "Как гирос-фудтрак стал сетью Burger Heroes",
+      sub: "Основатели: Игорь Подстрешный, Ольга Корнеева, Денис Сарвин.",
+      timeline: [
+        { year:"2015", title:"Фудтрак с гиросом", text:"Всё начиналось с продажи греческих лепёшек (гироса) с подержанного фудтрака-прицепа на уличных фестивалях в Москве." },
+        { year:"2015", title:"Первый стационарный бар", text:"В том же году команда сменила концепцию на авторские бургеры и открыла первое заведение на улице Большая Ордынка в Москве." },
+        { year:"2019", title:"Точка в аэропорту Внуково", text:"Ресторан во Внуково стал первым опытом немецкой компании Heinemann в общепите на территории России — создавался специально под международный пассажиропоток." },
+      ],
+      signatureIcon: "🐍",
+      signatureText: "Бургер «Чёрная мамба» — с беконом и вишней. Визитная карточка сети.",
+      sources: [
+        ["burgerheroes.ru","https://burgerheroes.ru/"],
+        ["burgerheroes.ru/about","https://burgerheroes.ru/about"],
+        ["bfm.ru","https://www.bfm.ru/news/432983"],
+        ["forbes.ru","https://www.forbes.ru/podcasts/bud-kak-petya/415749-kak-burger-heroes-prevratili-burgery-v-delikates-i-prodayut-ih-ot"],
+        ["retail.ru","https://www.retail.ru/news/heinemann-nakormit-burgerami-passazhirov-vnukovo/"],
+      ],
+    },
+    mobar: null,
+  };
+
+  function renderHistory(){
+    const body = document.getElementById('ob-body');
+    const data = POINT_HISTORY[currentPoint];
+    if(!data){
+      const empty = document.createElement('div');
+      empty.className = 'ob-card';
+      empty.innerHTML = `<p class="ob-card-title">История · ${POINT_LABEL[currentPoint]}</p>
+        <p style="font-size:13px;color:#666;margin:0;">Фактов пока нет — как только владелец пришлёт историю ${POINT_LABEL[currentPoint]}, раздел заполнится так же, как у Burger Heroes.</p>`;
+      body.appendChild(empty);
+      return;
+    }
+    const heroGradient = currentPoint==='bh'
+      ? 'linear-gradient(135deg,var(--bh-2),var(--bh),#c2273a)'
+      : 'linear-gradient(135deg,#c9a06a,var(--mobar),var(--mobar-2))';
+
+    const hero = document.createElement('div');
+    hero.className = 'ob-hero';
+    hero.style.background = heroGradient;
+    hero.innerHTML = `
+      <div class="ob-hero-eyebrow">${escapeHtml(data.eyebrow)}</div>
+      <h2 class="ob-hero-title">${escapeHtml(data.title)}</h2>
+      <p class="ob-hero-sub">${escapeHtml(data.sub)}</p>
+    `;
+    body.appendChild(hero);
+
+    const timelineWrap = document.createElement('div');
+    timelineWrap.className = 'ob-card';
+    timelineWrap.innerHTML = `<p class="ob-card-title">Хронология</p>
+      <div class="ob-timeline">
+        ${data.timeline.map(t => `
+          <div class="ob-timeline-item">
+            <div class="ob-timeline-dot"></div>
+            <div class="ob-timeline-year">${escapeHtml(t.year)}</div>
+            <div class="ob-timeline-title">${escapeHtml(t.title)}</div>
+            <div class="ob-timeline-text">${escapeHtml(t.text)}</div>
+          </div>
+        `).join('')}
+      </div>`;
+    body.appendChild(timelineWrap);
+
+    const sig = document.createElement('div');
+    sig.className = 'ob-signature-box';
+    sig.innerHTML = `<div class="ob-signature-icon">${data.signatureIcon}</div>
+      <div>
+        <div class="ob-signature-label">Визитная карточка</div>
+        <div class="ob-signature-text">${escapeHtml(data.signatureText)}</div>
+      </div>`;
+    body.appendChild(sig);
+
+    if(data.sources && data.sources.length){
+      const src = document.createElement('p');
+      src.className = 'ob-source-list';
+      src.innerHTML = 'Источники: ' + data.sources.map(([label,url]) =>
+        `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`
+      ).join(' · ');
+      body.appendChild(src);
+    }
   }
 
   const SUPPLIERS = [
