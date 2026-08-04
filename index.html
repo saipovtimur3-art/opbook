@@ -127,7 +127,7 @@
   .ob-story-tapzone.left{ left:0; }
   .ob-story-tapzone.right{ right:0; }
 
-  .ob-menu-cover{ width:100%; height:230px; object-fit:cover; border-radius:14px; margin-bottom:14px; display:block; box-shadow:0 1px 2px rgba(20,23,26,0.05); }
+  .ob-menu-cover{ width:100%; max-width:420px; aspect-ratio:900/780; object-fit:cover; border-radius:14px; margin-bottom:14px; display:block; box-shadow:0 4px 14px -6px rgba(20,23,26,0.25); }
 
   .ob-nav{ flex:1; overflow-y:auto; padding: 8px 0; }
   .ob-nav-item{
@@ -1542,7 +1542,7 @@ const BH_PHOTOS = [
     wrap.className='ob-dynamic';
     if(currentPoint==='bh'){
       wrap.innerHTML = `
-        <img class="ob-menu-cover" src="images/bh/menu-cover-bh.jpg" alt="Burger Heroes — «Летаем налегке»" style="object-position:center 55%;"/>
+        <img class="ob-menu-cover" src="images/bh/menu-cover-bh.jpg" alt="Burger Heroes — «Летаем налегке»"/>
         <div class="ob-card">
           <p class="ob-card-title">🍔 Меню Burger Heroes</p>
           <p style="font-size:13px;margin:0;"><a href="https://docs.google.com/spreadsheets/d/1NgUcrEcganQmTynyAPmxGE82--dutJI2lBtG2zg0Y-A/edit" target="_blank" style="color:#a13a17;font-weight:700;">👉 Открыть меню Burger Heroes (Google Sheets)</a></p>
