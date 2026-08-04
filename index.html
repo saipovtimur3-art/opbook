@@ -376,6 +376,7 @@ const BH_PHOTOS = [
   ];
 
   let currentPoint = 'bh'; // 'bh' | 'mobar'
+  const shownHistorySplash = {}; // отмечает точки, чью историю уже показали заставкой в этой сессии
   const POINT_LABEL = { bh:'🍔 Burger Heroes', mobar:'🍹 Мо Бар' };
 
   // ---- Live Google Sheets revenue source (JSONP — sidesteps CORS entirely) ----
@@ -637,6 +638,10 @@ const BH_PHOTOS = [
     renderStories();
     const s = SECTIONS.find(x=>x.id===activeId);
     if(s && s.group==='point') selectSection(activeId);
+    if(!shownHistorySplash[p] && POINT_HISTORY[p]){
+      shownHistorySplash[p] = true;
+      showSplash(p);
+    }
   }
 
   function renderStatusHeader(s){
@@ -1692,10 +1697,12 @@ const BH_PHOTOS = [
   setPoint('bh');
   loadStatuses().then(()=> selectSection(activeId));
 
-  function showSplash(){
-    const data = POINT_HISTORY['bh'];
+  function showSplash(point){
+    const data = POINT_HISTORY[point];
     if(!data) return;
-    const heroGradient = 'linear-gradient(135deg,var(--bh-2),var(--bh),#c2273a)';
+    const heroGradient = point==='bh'
+      ? 'linear-gradient(135deg,var(--bh-2),var(--bh),#c2273a)'
+      : 'linear-gradient(135deg,#c9a06a,var(--mobar),var(--mobar-2))';
     const splash = document.createElement('div');
     splash.id = 'ob-splash';
     splash.innerHTML = `
@@ -1733,8 +1740,6 @@ const BH_PHOTOS = [
     document.getElementById('ob-splash-continue').onclick = close;
     document.getElementById('ob-splash-skip').onclick = close;
   }
-
-  showSplash();
 })();
 </script>
 
