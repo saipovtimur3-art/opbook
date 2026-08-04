@@ -322,9 +322,9 @@ const BH_PHOTOS = [
 ];
 
   const SECTIONS = [
-    { id:"checklists", code:"01", icon:"📋", name:"Чек-листы смены", accent:"point", group:"point",
-      desc:"Чек-листы по ролям: кухня, менеджер, повар, касса, мойка — по точке.",
-      render: renderChecklist },
+    { id:"history", code:"01", icon:"📖", name:"История точки", accent:"point", group:"point",
+      desc:"Как появился бренд и как точка пришла в Внуково.",
+      render: renderHistory },
     { id:"menu", code:"02", icon:"🍔", name:"Меню и барная карта", accent:"point",
       desc:"Актуальное меню и стоп-лист — по точке.",
       render: renderMenu, group:"point" },
@@ -340,9 +340,9 @@ const BH_PHOTOS = [
     { id:"appearance", code:"06", icon:"👗", name:"Внешний вид", accent:"point",
       desc:"Стандарт формы и внешнего вида сотрудников — по точке.",
       render: renderAppearance, group:"point" },
-    { id:"history", code:"07", icon:"📖", name:"История точки", accent:"point",
-      desc:"Как появился бренд и как точка пришла в Внуково.",
-      render: renderHistory, group:"point" },
+    { id:"checklists", code:"07", icon:"📋", name:"Чек-листы смены", accent:"point", group:"point",
+      desc:"Чек-листы по ролям: кухня, менеджер, повар, касса, мойка — по точке.",
+      render: renderChecklist },
     { id:"staff", code:"08", icon:"👥", name:"Руководство", accent:"", group:"common",
       desc:"Контакты руководства и структуры управления.",
       render: renderStaff },
