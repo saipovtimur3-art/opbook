@@ -25,8 +25,11 @@
 Сайт **больше не на Netlify**. Сейчас:
 
 - **Хостинг:** Cloudflare Pages, проект `opbook`, домен `opbook.pages.dev`.
-  Задеплоен через **прямую загрузку файла** (drag-and-drop), НЕ через git-интеграцию
-  (git connection отключён / отсутствует у проекта).
+  С 05.08.2026 подключён напрямую к GitHub-репозиторию (git integration),
+  **Production branch = `claude/create-application-sjh9ps`**, автодеплой
+  включён (Automatic deployments: Enabled). Раньше был на прямой загрузке
+  файла (direct upload) — это в прошлом, см. историю деплоев в Cloudflare,
+  если нужно.
 - **Доступ:** Cloudflare Access (Zero Trust) — вход по одноразовому коду на
   почту. Policy называется **«Доступ по почте»**, список разрешённых email
   редактируется в Cloudflare: Zero Trust → Access controls → Applications →
@@ -40,31 +43,32 @@
 
 ### Как обновить сайт (деплой)
 
-GitHub push из этой среды **заблокирован** (403 "Resource not accessible by
-integration" — и через git, и через GitHub MCP API). Причина не выяснена до
-конца, похоже что write-доступ к репозиторию для интеграции Claude не выдан,
-хотя read работает (репозиторий публичный). Поэтому обновления сайта сейчас
-идут так:
-1. Правишь `index.html` локально, коммитишь в git (коммиты копятся локально,
-   не пушатся — это нормально, hook будет ругаться, можно игнорировать).
-2. Отдаёшь готовый `index.html` владельцу (`SendUserFile`).
-3. Владелец сам загружает его в Cloudflare: dash.cloudflare.com → Compute →
-   Workers & Pages → opbook → Deployments → **Create deployment** → выбрать
-   **folder** (не file! была история с багом двойного расширения при
-   одиночном file-drag) → **Save and deploy**.
+GitHub push теперь работает напрямую (обычный `git push` / GitHub MCP tools).
+Причина прежней 403-блокировки ("Resource not accessible by integration"):
+GitHub App "Claude" (owned by anthropics) был только **авторизован** на
+уровне аккаунта, но никогда не был **установлен** (installed) ни на один
+репозиторий — отсюда и ошибка. Исправлено 05.08.2026 через
+`github.com/apps/claude` → Install → выбрать аккаунт `saipovtimur3-art` →
+All repositories → Install & Authorize. Если снова появится 403
+"Resource not accessible by integration" — первым делом проверить
+`github.com/settings/installations` → должен быть установлен app "Claude"
+(не просто присутствовать в "Authorized GitHub Apps", а именно быть
+**установленным**).
 
-**Известный подводный камень:** Windows часто скрывает расширения файлов, из-за
-чего при переименовании легко получить `index.html.html` (сайт отвечает
-HTTP 404 на этот случай — файл не распознаётся как index). Перед тем как
-просить владельца что-то переименовывать — сначала попросить включить показ
-расширений в проводнике (Вид → Показать → Расширения имён файлов), потом
-переименовывать, и **проверить итоговое имя файла на экране загрузки
-Cloudflare** (там честно показывает точное имя) прежде чем нажимать deploy —
-это экономит круги.
+Обновление сайта теперь простое:
+1. Правишь `index.html` локально.
+2. `git add` + `git commit` + `git push origin claude/create-application-sjh9ps`.
+3. Cloudflare Pages сам подхватывает пуш и деплоит — ничего вручную загружать
+   не нужно. Проверить результат: Cloudflare → Workers & Pages → opbook →
+   Deployments (или сразу открыть opbook.pages.dev).
 
-Если в будущем GitHub push заработает — вернуться к обычному git workflow
-(commit + push на `claude/create-application-sjh9ps`) и, в идеале, подключить
-Cloudflare Pages к git-репозиторию вместо ручной загрузки.
+**Исторический подводный камень (актуален, только если когда-нибудь снова
+придётся грузить файл вручную):** Windows часто скрывает расширения файлов,
+из-за чего при переименовании легко получить `index.html.html` (сайт отвечает
+HTTP 404 — файл не распознаётся как index). Решение: включить показ
+расширений в проводнике (Вид → Показать → Расширения имён файлов) и
+загружать через **folder**, не через одиночный file-drag — на одиночном
+файле Cloudflare иногда сам дублирует расширение.
 
 ## Данные (Google Sheets, live через JSONP)
 
