@@ -234,6 +234,15 @@
   .ob-source-list{ font-size:11px; color:#999; margin-top:4px; }
   .ob-source-list a{ color:#999; }
 
+  .ob-rh-chart{ max-height:520px; overflow-y:auto; padding-right:4px; }
+  .ob-rh-row{ display:flex; align-items:center; gap:10px; padding:5px 0; }
+  .ob-rh-month{ width:130px; flex-shrink:0; font-size:11.5px; color:#555; font-family:'IBM Plex Mono',monospace; }
+  .ob-rh-bar-track{ flex:1; background:rgba(20,23,26,0.05); border-radius:4px; height:16px; overflow:hidden; }
+  .ob-rh-bar{ height:100%; background:var(--accent); border-radius:4px; transition:width .4s ease; }
+  .ob-rh-bar.fm{ background:#d99a3d; }
+  .ob-rh-bar.live{ background:repeating-linear-gradient(135deg, var(--accent), var(--accent) 8px, rgba(84,87,229,0.6) 8px, rgba(84,87,229,0.6) 16px); }
+  .ob-rh-val{ width:110px; flex-shrink:0; text-align:right; font-size:12px; font-weight:700; font-family:'IBM Plex Mono',monospace; }
+
   /* ---------- SPLASH (история при входе) ---------- */
   #ob-splash{
     position:fixed; inset:0; z-index:6000; overflow-y:auto;
@@ -366,46 +375,49 @@ const BH_PHOTOS = [
     { id:"finance", code:"03", icon:"💰", name:"Финансы", accent:"point",
       desc:"Выручка за месяц, средний СПП, пассажиропоток, средний чек, % выполнения плана — по точке.",
       render: renderFinance, group:"point" },
-    { id:"team", code:"04", icon:"🧑‍🍳", name:"Состав команды", accent:"point",
+    { id:"revenue_history", code:"04", icon:"📈", name:"История выручки", accent:"point",
+      desc:"Выручка, средний чек, СПП и рост по месяцам — по точке. Текущий месяц обновляется живьём.",
+      render: renderRevenueHistory, group:"point" },
+    { id:"team", code:"05", icon:"🧑‍🍳", name:"Состав команды", accent:"point",
       desc:"Полный список сотрудников точки: ФИО, должность, телефон, статус оформления.",
       render: renderTeam, group:"point" },
-    { id:"ushr", code:"05", icon:"📐", name:"Штатное расписание (УШР)", accent:"point",
+    { id:"ushr", code:"06", icon:"📐", name:"Штатное расписание (УШР)", accent:"point",
       desc:"Плановый штат, график, ставки — по точке.",
       render: renderUSHR, group:"point" },
-    { id:"appearance", code:"06", icon:"👗", name:"Внешний вид", accent:"point",
+    { id:"appearance", code:"07", icon:"👗", name:"Внешний вид", accent:"point",
       desc:"Стандарт формы и внешнего вида сотрудников — по точке.",
       render: renderAppearance, group:"point" },
-    { id:"checklists", code:"07", icon:"📋", name:"Чек-листы смены", accent:"point", group:"point",
+    { id:"checklists", code:"08", icon:"📋", name:"Чек-листы смены", accent:"point", group:"point",
       desc:"Чек-листы по ролям: кухня, менеджер, повар, касса, мойка — по точке.",
       render: renderChecklist },
-    { id:"staff", code:"08", icon:"👥", name:"Руководство", accent:"", group:"common",
+    { id:"staff", code:"09", icon:"👥", name:"Руководство", accent:"", group:"common",
       desc:"Контакты руководства и структуры управления.",
       render: renderStaff },
-    { id:"suppliers", code:"09", icon:"🚚", name:"Поставщики", accent:"", group:"common",
+    { id:"suppliers", code:"10", icon:"🚚", name:"Поставщики", accent:"", group:"common",
       desc:"Контакты поставщиков по категориям, отсрочка, дни отгрузки.",
       render: renderSuppliers },
-    { id:"contacts", code:"10", icon:"📞", name:"Технические службы", accent:"", group:"common",
+    { id:"contacts", code:"11", icon:"📞", name:"Технические службы", accent:"", group:"common",
       desc:"Контакты сервисных служб — общие для обеих точек.",
       render: renderTechContacts },
-    { id:"emergency", code:"11", icon:"🚨", name:"ЧС", accent:"", group:"common",
+    { id:"emergency", code:"12", icon:"🚨", name:"ЧС", accent:"", group:"common",
       desc:"Нештатные ситуации, экстренные контакты.",
       render: renderEmergency },
-    { id:"airport_rules", code:"12", icon:"🛫", name:"Правила аэропорта", accent:"", group:"common",
+    { id:"airport_rules", code:"13", icon:"🛫", name:"Правила аэропорта", accent:"", group:"common",
       desc:"Что нужно знать на смене о сбойных ситуациях в Внуково (регламент РГ-02.06-12).",
       render: renderAirportRules },
-    { id:"manager", code:"13", icon:"👔", name:"Управляющий", accent:"accent-mobar", group:"common",
+    { id:"manager", code:"14", icon:"👔", name:"Управляющий", accent:"accent-mobar", group:"common",
       desc:"Ежедневный, еженедельный и ежемесячный чек-лист управляющего.",
       render: renderManagerTasks },
-    { id:"motivation", code:"14", icon:"🏆", name:"Мотивация", accent:"", group:"common",
+    { id:"motivation", code:"15", icon:"🏆", name:"Мотивация", accent:"", group:"common",
       desc:"KPI, конкурсы, премии.",
       render: renderMotivation },
-    { id:"training", code:"15", icon:"📚", name:"Обучение", accent:"", group:"common",
+    { id:"training", code:"16", icon:"📚", name:"Обучение", accent:"", group:"common",
       desc:"План стажировки нового сотрудника.",
       render: renderTraining },
-    { id:"access", code:"16", icon:"🔐", name:"Доступы", accent:"", group:"common",
+    { id:"access", code:"17", icon:"🔐", name:"Доступы", accent:"", group:"common",
       desc:"Ключи и доступы к системам — конфиденциально.",
       render: renderAccess },
-    { id:"sheets", code:"17", icon:"📁", name:"Все таблицы", accent:"", group:"common",
+    { id:"sheets", code:"18", icon:"📁", name:"Все таблицы", accent:"", group:"common",
       desc:"Все Google-таблицы, которые нужны управляющему, в одном месте.",
       render: renderSheetsHub },
   ];
@@ -1667,6 +1679,149 @@ const BH_PHOTOS = [
       paint(data, null, false);
     }catch(e){
       if(!financeCache[point]) paint(null, e.message || String(e), false);
+    }
+  }
+
+  // Закрытые месяцы — сверено владельцем вручную (файл истории выручки, авг 2026).
+  // Текущий незакрытый месяц дальше подтягивается живьём из той же таблицы, что и раздел «Финансы» —
+  // руками сюда ничего добавлять не нужно, пока он не закроется (см. заметку в CLAUDE.md).
+  const REVENUE_HISTORY = {
+    bh: [
+      { month:"Январь 2025", revenue:7430000, checks:5439, avgCheck:1366, avgSPP:18, forceMajeure:false },
+      { month:"Февраль 2025", revenue:6700000, checks:4494, avgCheck:1490, avgSPP:16, forceMajeure:false },
+      { month:"Март 2025", revenue:7440000, checks:5494, avgCheck:1355, avgSPP:17, forceMajeure:false },
+      { month:"Апрель 2025", revenue:11610000, checks:7358, avgCheck:1578, avgSPP:18, forceMajeure:false },
+      { month:"Май 2025", revenue:12800000, checks:7865, avgCheck:1628, avgSPP:27, forceMajeure:false },
+      { month:"Июнь 2025", revenue:12630000, checks:7042, avgCheck:1865, avgSPP:28, forceMajeure:false },
+      { month:"Июль 2025", revenue:14390000, checks:7966, avgCheck:1806, avgSPP:26, forceMajeure:false },
+      { month:"Август 2025", revenue:13600000, checks:7351, avgCheck:1851, avgSPP:29, forceMajeure:true },
+      { month:"Сентябрь 2025", revenue:15550000, checks:8813, avgCheck:1765, avgSPP:28.19, forceMajeure:false },
+      { month:"Октябрь 2025", revenue:14900000, checks:8870, avgCheck:1680, avgSPP:31, forceMajeure:false },
+      { month:"Ноябрь 2025", revenue:9230000, checks:5976, avgCheck:1545, avgSPP:28, forceMajeure:false },
+      { month:"Декабрь 2025", revenue:16000000, checks:5068, avgCheck:3157, avgSPP:44.3, forceMajeure:false },
+      { month:"Январь 2026", revenue:10900000, checks:5100, avgCheck:null, avgSPP:null, forceMajeure:false },
+      { month:"Февраль 2026", revenue:9020000, checks:5388, avgCheck:1674, avgSPP:29.5, forceMajeure:false },
+      { month:"Март 2026", revenue:7590000, checks:4988, avgCheck:1522, avgSPP:23.8, forceMajeure:true },
+      { month:"Апрель 2026", revenue:9490000, checks:5666, avgCheck:1675, avgSPP:26.9, forceMajeure:false },
+      { month:"Май 2026", revenue:13180000, checks:7991, avgCheck:1649, avgSPP:30.1, forceMajeure:false },
+      { month:"Июнь 2026", revenue:14970000, checks:8366, avgCheck:1789, avgSPP:44.4, forceMajeure:true },
+      { month:"Июль 2026", revenue:15263313, checks:7884, avgCheck:1936, avgSPP:29.1, forceMajeure:false,
+        dayRecord:794275, dayRecordDate:"25.07.2026 (пт)" },
+    ],
+    mobar: null, // ждём файл истории выручки от владельца — заполнится так же, как у BH
+  };
+
+  function monthLabelFromSheetName(point){
+    const raw = REVENUE_SHEET_NAMES[point] || '';
+    const prefix = point==='bh' ? 'БХ ' : 'МО БАР ';
+    const rest = raw.startsWith(prefix) ? raw.slice(prefix.length) : raw;
+    return rest.charAt(0) + rest.slice(1).toLowerCase();
+  }
+
+  async function renderRevenueHistory(){
+    const body = document.getElementById('ob-body');
+    const history = REVENUE_HISTORY[currentPoint];
+    if(!history){
+      const empty = document.createElement('div');
+      empty.className = 'ob-card';
+      empty.innerHTML = `<p class="ob-card-title">История выручки · ${POINT_LABEL[currentPoint]}</p>
+        <p style="font-size:13px;color:#666;margin:0;">Данных пока нет — как только владелец пришлёт историю выручки ${POINT_LABEL[currentPoint]}, здесь появится такой же дашборд, как у Burger Heroes.</p>`;
+      body.appendChild(empty);
+      return;
+    }
+
+    const loading = document.createElement('p');
+    loading.id = 'ob-rh-loading';
+    loading.style.cssText = 'font-size:12px;color:#999;margin:0 0 10px;';
+    loading.textContent = 'Подтягиваю текущий месяц живьём из таблицы…';
+    body.appendChild(loading);
+
+    const rows = history.slice();
+    const currentLabel = monthLabelFromSheetName(currentPoint);
+    const alreadyHasCurrent = rows.length && rows[rows.length-1].month === currentLabel;
+
+    function paintDashboard(liveRow){
+      loading.remove();
+      const allRows = liveRow ? rows.concat([liveRow]) : rows;
+      const maxRevenue = Math.max(...allRows.map(r=>r.revenue||0));
+      const last = allRows[allRows.length-1];
+      const prev = allRows[allRows.length-2];
+      const growthPct = (prev && prev.revenue) ? ((last.revenue-prev.revenue)/prev.revenue*100) : null;
+
+      const stats = document.createElement('div');
+      stats.className = 'ob-stat-row';
+      stats.innerHTML = `
+        <div class="ob-stat"><div class="ob-stat-val">${fmtNum(last.revenue)} ₽</div><div class="ob-stat-label">Выручка · ${last.month}${liveRow?' (идёт)':''}</div></div>
+        <div class="ob-stat"><div class="ob-stat-val">${last.avgCheck?fmtNum(last.avgCheck)+' ₽':'—'}</div><div class="ob-stat-label">Средний чек</div></div>
+        <div class="ob-stat"><div class="ob-stat-val">${last.avgSPP?fmtNum(last.avgSPP,1):'—'}</div><div class="ob-stat-label">Средний СПП, ₽/пасс</div></div>
+        <div class="ob-stat"><div class="ob-stat-val" style="color:${growthPct==null?'inherit':(growthPct>=0?'#1f6b30':'#a13a17')}">${growthPct==null?'—':(growthPct>=0?'+':'')+fmtNum(growthPct,1)+'%'}</div><div class="ob-stat-label">Рост к пред. месяцу</div></div>
+      `;
+      body.appendChild(stats);
+
+      const chartCard = document.createElement('div');
+      chartCard.className = 'ob-card';
+      chartCard.innerHTML = `<p class="ob-card-title">Выручка по месяцам</p>
+        <div class="ob-rh-chart">
+          ${allRows.map((r,i)=>{
+            const pct = maxRevenue>0 ? Math.max(4, r.revenue/maxRevenue*100) : 0;
+            const isLive = liveRow && i===allRows.length-1;
+            return `<div class="ob-rh-row">
+              <div class="ob-rh-month">${escapeHtml(r.month)}${r.forceMajeure?' ⚠️':''}${isLive?' 🔴':''}</div>
+              <div class="ob-rh-bar-track"><div class="ob-rh-bar ${r.forceMajeure?'fm':''} ${isLive?'live':''}" style="width:${pct}%"></div></div>
+              <div class="ob-rh-val">${fmtNum(r.revenue)} ₽</div>
+            </div>`;
+          }).join('')}
+        </div>`;
+      body.appendChild(chartCard);
+
+      // Автозаметки — считаются из самих данных, ничего не придумываем.
+      const closedRows = rows; // только закрытые месяцы, без текущего "идёт"
+      const best = closedRows.reduce((a,b)=> (b.revenue>a.revenue?b:a), closedRows[0]);
+      const worst = closedRows.reduce((a,b)=> (b.revenue<a.revenue?b:a), closedRows[0]);
+      const fmMonths = closedRows.filter(r=>r.forceMajeure).map(r=>r.month);
+      const first = closedRows[0];
+      const totalGrowth = first.revenue>0 ? ((closedRows[closedRows.length-1].revenue-first.revenue)/first.revenue*100) : null;
+
+      const notesCard = document.createElement('div');
+      notesCard.className = 'ob-card';
+      let notesHtml = `<p class="ob-card-title">Комментарии</p><ul style="margin:0;padding-left:18px;font-size:13px;color:#444;line-height:1.7;">
+        <li>🏆 Лучший месяц по выручке — <b>${escapeHtml(best.month)}</b>: ${fmtNum(best.revenue)} ₽</li>
+        <li>📉 Самый слабый месяц — <b>${escapeHtml(worst.month)}</b>: ${fmtNum(worst.revenue)} ₽</li>
+        ${totalGrowth!=null ? `<li>📈 С ${escapeHtml(first.month)} по ${escapeHtml(closedRows[closedRows.length-1].month)} выручка выросла с ${fmtNum(first.revenue)} ₽ до ${fmtNum(closedRows[closedRows.length-1].revenue)} ₽ (${totalGrowth>=0?'+':''}${fmtNum(totalGrowth,1)}%)</li>` : ''}
+        ${fmMonths.length ? `<li>⚠️ Форс-мажор фиксировался в: ${fmMonths.map(escapeHtml).join(', ')} — выручка в эти месяцы просела относительно плана</li>` : ''}
+      `;
+      const recordRow = rows.find(r=>r.dayRecord);
+      if(recordRow){
+        notesHtml += `<li>🔥 Рекорд выручки за день — ${fmtNum(recordRow.dayRecord)} ₽ (${escapeHtml(recordRow.dayRecordDate)})</li>`;
+      }
+      notesHtml += `</ul>`;
+      notesCard.innerHTML = notesHtml;
+      body.appendChild(notesCard);
+
+      if(liveRow){
+        const note = document.createElement('p');
+        note.style.cssText = 'font-size:11px;color:#999;margin-top:4px;';
+        note.textContent = `${last.month} ещё не закрыт — цифры живые, обновляются из той же таблицы, что и раздел «Финансы».`;
+        body.appendChild(note);
+      }
+    }
+
+    if(alreadyHasCurrent){
+      // Текущий месяц уже в закрытой истории (например, только что закрылся) — просто рисуем как есть.
+      paintDashboard(null);
+      return;
+    }
+
+    try{
+      const data = financeCache[currentPoint] && financeCache[currentPoint]!=='error'
+        ? financeCache[currentPoint] : await loadFinanceData(currentPoint);
+      financeCache[currentPoint] = data;
+      if(activeId !== 'revenue_history') return;
+      const liveRow = { month:currentLabel, revenue:data.totalRevenue, checks:data.totalChecks, avgCheck:data.avgCheck, avgSPP:data.avgSPP, forceMajeure:false };
+      paintDashboard(liveRow);
+    }catch(e){
+      if(activeId !== 'revenue_history') return;
+      paintDashboard(null);
     }
   }
 
