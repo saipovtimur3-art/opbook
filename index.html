@@ -243,6 +243,23 @@
   .ob-rh-bar.live{ background:repeating-linear-gradient(135deg, var(--accent), var(--accent) 8px, rgba(84,87,229,0.6) 8px, rgba(84,87,229,0.6) 16px); }
   .ob-rh-val{ width:110px; flex-shrink:0; text-align:right; font-size:12px; font-weight:700; font-family:'IBM Plex Mono',monospace; }
 
+  .ob-team-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:12px; }
+  .ob-team-card{
+    background:var(--paper-2); border:1px solid rgba(20,23,26,0.07); border-radius:14px;
+    padding:14px; box-shadow:0 1px 2px rgba(20,23,26,0.03);
+  }
+  .ob-team-top{ display:flex; align-items:flex-start; gap:10px; }
+  .ob-team-avatar{
+    width:38px; height:38px; border-radius:50%; flex-shrink:0; color:#fff; font-weight:700; font-size:13px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ob-team-name{ font-size:14px; font-weight:700; line-height:1.25; }
+  .ob-team-role{ font-size:12px; color:#777; margin-top:1px; }
+  .ob-team-status{ font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:20px; flex-shrink:0; white-space:nowrap; }
+  .ob-team-status.ok{ background:#DFF3E2; color:#1f6b30; }
+  .ob-team-status.no{ background:#FBEAEA; color:#a13a17; }
+  .ob-team-meta{ display:flex; flex-direction:column; gap:3px; margin-top:10px; padding-top:10px; border-top:1px solid rgba(20,23,26,0.06); font-size:11.5px; color:#666; }
+
   /* ---------- SPLASH (история при входе) ---------- */
   #ob-splash{
     position:fixed; inset:0; z-index:6000; overflow-y:auto;
@@ -1083,8 +1100,8 @@ const BH_PHOTOS = [
   const TEAM_SHEET_ID = '1x3Cn2XgC6tw-4VOh-Zvo8fFiXssO4xwjReJQ19pNdMM';
   const TEAM_SHEET_NAMES = { mobar:'Мо - Бар', bh:'БХ' };
   const TEAM_COLS = {
-    mobar: { num:0, name:1, birth:2, role:3, citizenship:4, phone:5, status:6 },
-    bh:    { num:0, name:1, role:2, tt:3, birth:4, citizenship:5, phone:6, reason:7, status:8 },
+    mobar: { num:0, hireDate:1, name:2, birth:3, role:4, citizenship:5, phone:6, regDate:7, status:8, tenureText:10 },
+    bh:    { num:0, hireDate:1, name:2, role:3, tt:4, birth:5, citizenship:6, phone:7, regDate:8, reason:9, status:10, tenureText:12 },
   };
   const teamCache = {}; // point -> data | undefined
 
@@ -1132,6 +1149,9 @@ const BH_PHOTOS = [
         role: (row[col.role]||'').trim() || '—',
         phone: (row[col.phone]||'').trim() || '—',
         status: normStatus(row[col.status]),
+        hireDate: (row[col.hireDate]||'').trim() || '—',
+        tenure: (row[col.tenureText]||'').trim() || '—',
+        citizenship: (row[col.citizenship]||'').trim() || '—',
       });
     });
     return { list, debug: { usedSheetName: usedName, totalRows: rows.length, sample: rows.slice(0,8) } };
@@ -1161,19 +1181,34 @@ const BH_PHOTOS = [
       }
       const list = data.list;
       const okCount = list.filter(p=>p.status.includes('✅')).length;
+      const pendingCount = list.length - okCount;
+      const initials = n => n.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const accent = point==='bh' ? 'var(--bh)' : 'var(--mobar)';
+
       wrap.innerHTML = `
-        <div class="ob-card">
-          <p class="ob-card-title">Live · ${TEAM_SHEET_NAMES[point]} — всего ${list.length} чел. · оформлено ${okCount} · требует оформления ${list.length-okCount}
-            <span style="text-transform:none;color:#aaa;font-weight:400;"> · <a href="https://docs.google.com/spreadsheets/d/${TEAM_SHEET_ID}/edit" target="_blank" style="color:inherit;">открыть таблицу</a> · <button id="ob-team-refresh" style="font-size:11px;padding:2px 8px;border-radius:10px;border:1px solid rgba(0,0,0,0.15);background:#fff;cursor:pointer;">↻</button></span>
-          </p>
-          ${list.map(p=>`<div class="ob-check-row" style="border-bottom:1px solid rgba(0,0,0,0.06);flex-wrap:wrap;">
-            <span style="flex:2;min-width:140px;">${p.name}</span>
-            <span style="flex:1;min-width:110px;color:#777;">${p.role}</span>
-            <span class="ob-mono" style="flex:1;min-width:130px;">${p.phone}</span>
-            <span style="width:120px;text-align:right;font-size:12px;${p.status.includes('❌')?'color:#a13a17;':'color:#1f6b30;'}">${p.status}</span>
-          </div>`).join('')}
-          ${list.length===0?'<p style="font-size:12px;color:#a13a17;">Ни одной строки не распозналось — смотри диагностику ниже.</p>':''}
+        <div class="ob-stat-row">
+          <div class="ob-stat"><div class="ob-stat-val">${list.length}</div><div class="ob-stat-label">Всего в команде · ${POINT_LABEL[point]}</div></div>
+          <div class="ob-stat"><div class="ob-stat-val" style="color:#1f6b30;">${okCount}</div><div class="ob-stat-label">✅ Оформлено</div></div>
+          <div class="ob-stat"><div class="ob-stat-val" style="color:${pendingCount>0?'#a13a17':'inherit'};">${pendingCount}</div><div class="ob-stat-label">❌ Требует оформления</div></div>
         </div>
+        <p style="font-size:11px;color:#999;margin:0 0 12px;">Live · лист «${TEAM_SHEET_NAMES[point]}» · <a href="https://docs.google.com/spreadsheets/d/${TEAM_SHEET_ID}/edit" target="_blank" style="color:inherit;">открыть таблицу</a> · <button id="ob-team-refresh" style="font-size:11px;padding:2px 8px;border-radius:10px;border:1px solid rgba(0,0,0,0.15);background:#fff;cursor:pointer;">↻ обновить</button></p>
+        <div class="ob-team-grid">
+          ${list.map(p=>`<div class="ob-team-card">
+            <div class="ob-team-top">
+              <div class="ob-team-avatar" style="background:${accent};">${initials(p.name)}</div>
+              <div style="flex:1;min-width:0;">
+                <div class="ob-team-name">${escapeHtml(p.name)}</div>
+                <div class="ob-team-role">${escapeHtml(p.role)}${p.citizenship&&p.citizenship!=='—'?' · '+escapeHtml(p.citizenship):''}</div>
+              </div>
+              <span class="ob-team-status ${p.status.includes('❌')?'no':'ok'}">${p.status}</span>
+            </div>
+            <div class="ob-team-meta">
+              <span class="ob-mono">${escapeHtml(p.phone)}</span>
+              <span>🗓 в команде с ${escapeHtml(p.hireDate)}${p.tenure&&p.tenure!=='—'?' · стаж '+escapeHtml(p.tenure):''}</span>
+            </div>
+          </div>`).join('')}
+        </div>
+        ${list.length===0?'<p style="font-size:12px;color:#a13a17;">Ни одной строки не распозналось — смотри диагностику ниже.</p>':''}
         <details style="margin-top:10px;font-size:11px;color:#777;">
           <summary style="cursor:pointer;font-weight:600;">🔧 Диагностика</summary>
           <div class="ob-mono" style="white-space:pre-wrap;background:#111;color:#9f9;padding:10px;border-radius:6px;margin-top:6px;font-size:10px;line-height:1.5;overflow-x:auto;">${escapeHtml(JSON.stringify(data.debug, null, 2))}</div>
