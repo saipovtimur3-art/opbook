@@ -530,7 +530,10 @@ const BH_PHOTOS = [
   }
 
   async function loadFinanceData(point){
-    const sheetName = REVENUE_SHEET_NAMES[point];
+    return loadFinanceDataForSheet(REVENUE_SHEET_NAMES[point]);
+  }
+
+  async function loadFinanceDataForSheet(sheetName){
     const json = await fetchSheetJSONP(REVENUE_SHEET_ID, sheetName);
     if(json.status === 'error'){
       const msg = (json.errors && json.errors[0] && (json.errors[0].detailed_message || json.errors[0].message)) || 'Google Sheets вернул ошибку';
@@ -1787,21 +1790,55 @@ const BH_PHOTOS = [
     ],
   };
 
-  function monthLabelFromSheetName(point){
-    const raw = REVENUE_SHEET_NAMES[point] || '';
-    const prefix = point==='bh' ? 'БХ ' : 'МО БАР ';
-    const rest = raw.startsWith(prefix) ? raw.slice(prefix.length) : raw;
-    return rest.charAt(0) + rest.slice(1).toLowerCase();
+  function parseRuMonthLabel(label){
+    const parts = label.trim().split(/\s+/);
+    const year = parseInt(parts[1], 10);
+    const monthIdx = RU_MONTHS.indexOf(parts[0].toUpperCase());
+    return { year, monthIdx };
+  }
+
+  function ruMonthLabel(monthIdx, year){
+    const name = RU_MONTHS[monthIdx];
+    return name.charAt(0) + name.slice(1).toLowerCase() + ' ' + year;
+  }
+
+  function sheetNameForMonth(point, monthIdx, year){
+    const name = RU_MONTHS[monthIdx];
+    return point==='bh' ? `БХ ${name} ${year}` : `МО БАР ${name} ${year}`;
+  }
+
+  // Список месяцев от (последний зафиксированный в REVENUE_HISTORY + 1) по текущий включительно.
+  // Каждый из них подтягиваем живьём — так раздел сам "доезжает" до сегодняшнего месяца,
+  // даже если закрывшийся месяц забыли внести в REVENUE_HISTORY вручную.
+  function computeGapMonths(point){
+    const history = REVENUE_HISTORY[point];
+    if(!history || !history.length) return [];
+    let { year, monthIdx } = parseRuMonthLabel(history[history.length-1].month);
+    const now = new Date();
+    const curMonthIdx = now.getMonth();
+    const curYear = now.getFullYear();
+    const gaps = [];
+    monthIdx++; if(monthIdx>11){ monthIdx=0; year++; }
+    while(year<curYear || (year===curYear && monthIdx<=curMonthIdx)){
+      gaps.push({
+        month: ruMonthLabel(monthIdx, year),
+        sheetName: sheetNameForMonth(point, monthIdx, year),
+        isCurrent: year===curYear && monthIdx===curMonthIdx,
+      });
+      monthIdx++; if(monthIdx>11){ monthIdx=0; year++; }
+    }
+    return gaps;
   }
 
   async function renderRevenueHistory(){
     const body = document.getElementById('ob-body');
-    const history = REVENUE_HISTORY[currentPoint];
+    const point = currentPoint;
+    const history = REVENUE_HISTORY[point];
     if(!history){
       const empty = document.createElement('div');
       empty.className = 'ob-card';
-      empty.innerHTML = `<p class="ob-card-title">История выручки · ${POINT_LABEL[currentPoint]}</p>
-        <p style="font-size:13px;color:#666;margin:0;">Данных пока нет — как только владелец пришлёт историю выручки ${POINT_LABEL[currentPoint]}, здесь появится такой же дашборд, как у Burger Heroes.</p>`;
+      empty.innerHTML = `<p class="ob-card-title">История выручки · ${POINT_LABEL[point]}</p>
+        <p style="font-size:13px;color:#666;margin:0;">Данных пока нет — как только владелец пришлёт историю выручки ${POINT_LABEL[point]}, здесь появится такой же дашборд, как у Burger Heroes.</p>`;
       body.appendChild(empty);
       return;
     }
@@ -1809,25 +1846,26 @@ const BH_PHOTOS = [
     const loading = document.createElement('p');
     loading.id = 'ob-rh-loading';
     loading.style.cssText = 'font-size:12px;color:#999;margin:0 0 10px;';
-    loading.textContent = 'Подтягиваю текущий месяц живьём из таблицы…';
+    loading.textContent = 'Подтягиваю ещё не зафиксированные месяцы живьём из таблицы…';
     body.appendChild(loading);
 
     const rows = history.slice();
-    const currentLabel = monthLabelFromSheetName(currentPoint);
-    const alreadyHasCurrent = rows.length && rows[rows.length-1].month === currentLabel;
+    const gapMonths = computeGapMonths(point);
 
-    function paintDashboard(liveRow){
+    function paintDashboard(liveRows, failedMonths){
+      if(currentPoint !== point || activeId !== 'revenue_history') return;
       loading.remove();
-      const allRows = liveRow ? rows.concat([liveRow]) : rows;
+      const allRows = rows.concat(liveRows);
       const maxRevenue = Math.max(...allRows.map(r=>r.revenue||0));
       const last = allRows[allRows.length-1];
       const prev = allRows[allRows.length-2];
       const growthPct = (prev && prev.revenue) ? ((last.revenue-prev.revenue)/prev.revenue*100) : null;
+      const lastIsLive = liveRows.length>0;
 
       const stats = document.createElement('div');
       stats.className = 'ob-stat-row';
       stats.innerHTML = `
-        <div class="ob-stat"><div class="ob-stat-val">${fmtNum(last.revenue)} ₽</div><div class="ob-stat-label">Выручка · ${last.month}${liveRow?' (идёт)':''}</div></div>
+        <div class="ob-stat"><div class="ob-stat-val">${fmtNum(last.revenue)} ₽</div><div class="ob-stat-label">Выручка · ${last.month}${lastIsLive?' (идёт)':''}</div></div>
         <div class="ob-stat"><div class="ob-stat-val">${last.avgCheck?fmtNum(last.avgCheck)+' ₽':'—'}</div><div class="ob-stat-label">Средний чек</div></div>
         <div class="ob-stat"><div class="ob-stat-val">${last.avgSPP?fmtNum(last.avgSPP,1):'—'}</div><div class="ob-stat-label">Средний СПП, ₽/пасс</div></div>
         <div class="ob-stat"><div class="ob-stat-val" style="color:${growthPct==null?'inherit':(growthPct>=0?'#1f6b30':'#a13a17')}">${growthPct==null?'—':(growthPct>=0?'+':'')+fmtNum(growthPct,1)+'%'}</div><div class="ob-stat-label">Рост к пред. месяцу</div></div>
@@ -1838,9 +1876,9 @@ const BH_PHOTOS = [
       chartCard.className = 'ob-card';
       chartCard.innerHTML = `<p class="ob-card-title">Выручка по месяцам</p>
         <div class="ob-rh-chart">
-          ${allRows.map((r,i)=>{
+          ${allRows.map((r)=>{
             const pct = maxRevenue>0 ? Math.max(4, r.revenue/maxRevenue*100) : 0;
-            const isLive = liveRow && i===allRows.length-1;
+            const isLive = !!r.isCurrent;
             return `<div class="ob-rh-row">
               <div class="ob-rh-month">${escapeHtml(r.month)}${r.forceMajeure?' ⚠️':''}${isLive?' 🔴':''}</div>
               <div class="ob-rh-bar-track"><div class="ob-rh-bar ${r.forceMajeure?'fm':''} ${isLive?'live':''}" style="width:${pct}%"></div></div>
@@ -1850,8 +1888,8 @@ const BH_PHOTOS = [
         </div>`;
       body.appendChild(chartCard);
 
-      // Автозаметки — считаются из самих данных, ничего не придумываем.
-      const closedRows = rows; // только закрытые месяцы, без текущего "идёт"
+      // Автозаметки — считаются из самих данных, ничего не придумываем. Текущий незакрытый месяц в них не участвует.
+      const closedRows = lastIsLive && liveRows[liveRows.length-1].isCurrent ? allRows.slice(0, allRows.length-1) : allRows;
       const best = closedRows.reduce((a,b)=> (b.revenue>a.revenue?b:a), closedRows[0]);
       const worst = closedRows.reduce((a,b)=> (b.revenue<a.revenue?b:a), closedRows[0]);
       const fmMonths = closedRows.filter(r=>r.forceMajeure).map(r=>r.month);
@@ -1874,31 +1912,41 @@ const BH_PHOTOS = [
       notesCard.innerHTML = notesHtml;
       body.appendChild(notesCard);
 
-      if(liveRow){
+      if(liveRows.length){
         const note = document.createElement('p');
         note.style.cssText = 'font-size:11px;color:#999;margin-top:4px;';
-        note.textContent = `${last.month} ещё не закрыт — цифры живые, обновляются из той же таблицы, что и раздел «Финансы».`;
+        const closedLive = liveRows.filter(r=>!r.isCurrent).map(r=>r.month);
+        let text = '';
+        if(closedLive.length) text += `${closedLive.join(', ')} уже закрыт${closedLive.length>1?'ы':''}, но пока не занесён${closedLive.length>1?'ы':''} в постоянную историю — цифры подтянуты живьём. `;
+        text += `${last.month}${lastIsLive?' ещё не закрыт':''} — обновляется из той же таблицы, что и раздел «Финансы».`;
+        note.textContent = text;
         body.appendChild(note);
+      }
+      if(failedMonths.length){
+        const warn = document.createElement('p');
+        warn.style.cssText = 'font-size:11px;color:#a13a17;margin-top:4px;';
+        warn.textContent = `Не удалось подтянуть: ${failedMonths.join(', ')} — либо вкладки с таким названием нет в таблице, либо не удалось получить данные.`;
+        body.appendChild(warn);
       }
     }
 
-    if(alreadyHasCurrent){
-      // Текущий месяц уже в закрытой истории (например, только что закрылся) — просто рисуем как есть.
-      paintDashboard(null);
+    if(!gapMonths.length){
+      paintDashboard([], []);
       return;
     }
 
-    try{
-      const data = financeCache[currentPoint] && financeCache[currentPoint]!=='error'
-        ? financeCache[currentPoint] : await loadFinanceData(currentPoint);
-      financeCache[currentPoint] = data;
-      if(activeId !== 'revenue_history') return;
-      const liveRow = { month:currentLabel, revenue:data.totalRevenue, checks:data.totalChecks, avgCheck:data.avgCheck, avgSPP:data.avgSPP, forceMajeure:false };
-      paintDashboard(liveRow);
-    }catch(e){
-      if(activeId !== 'revenue_history') return;
-      paintDashboard(null);
-    }
+    const results = await Promise.allSettled(gapMonths.map(g => loadFinanceDataForSheet(g.sheetName)));
+    const liveRows = [];
+    const failedMonths = [];
+    results.forEach((res, i) => {
+      const g = gapMonths[i];
+      if(res.status === 'fulfilled'){
+        liveRows.push({ month:g.month, revenue:res.value.totalRevenue, checks:res.value.totalChecks, avgCheck:res.value.avgCheck, avgSPP:res.value.avgSPP, forceMajeure:false, isLive:true, isCurrent:g.isCurrent });
+      } else {
+        failedMonths.push(g.month);
+      }
+    });
+    paintDashboard(liveRows, failedMonths);
   }
 
   function renderStub(s){
