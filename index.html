@@ -445,7 +445,16 @@ const BH_PHOTOS = [
 
   // ---- Live Google Sheets revenue source (JSONP — sidesteps CORS entirely) ----
   const REVENUE_SHEET_ID = '1wwb1fkPp7ZUhtksrsBaKHJBOOufshtooHCnolrAZY1o';
-  const REVENUE_SHEET_NAMES = { bh:'БХ АВГУСТ 2026', mobar:'МО БАР АВГУСТ 2026' };
+  const RU_MONTHS = ['ЯНВАРЬ','ФЕВРАЛЬ','МАРТ','АПРЕЛЬ','МАЙ','ИЮНЬ','ИЮЛЬ','АВГУСТ','СЕНТЯБРЬ','ОКТЯБРЬ','НОЯБРЬ','ДЕКАБРЬ'];
+  // Вкладки в таблице называются "БХ <МЕСЯЦ> <ГОД>" / "МО БАР <МЕСЯЦ> <ГОД>" — вычисляем
+  // название текущего месяца по календарю, чтобы не обновлять его в коде каждый месяц вручную.
+  function currentRevenueSheetName(point){
+    const now = new Date();
+    const month = RU_MONTHS[now.getMonth()];
+    const year = now.getFullYear();
+    return point==='bh' ? `БХ ${month} ${year}` : `МО БАР ${month} ${year}`;
+  }
+  const REVENUE_SHEET_NAMES = { get bh(){ return currentRevenueSheetName('bh'); }, get mobar(){ return currentRevenueSheetName('mobar'); } };
   const financeCache = {}; // point -> { ... }
 
   function fetchSheetJSONP(sheetId, sheetName){
