@@ -1771,8 +1771,7 @@ const BH_PHOTOS = [
       { month:"Апрель 2026", revenue:9490000, checks:5666, avgCheck:1675, avgSPP:26.9, forceMajeure:false },
       { month:"Май 2026", revenue:13180000, checks:7991, avgCheck:1649, avgSPP:30.1, forceMajeure:false },
       { month:"Июнь 2026", revenue:14970000, checks:8366, avgCheck:1789, avgSPP:44.4, forceMajeure:true },
-      { month:"Июль 2026", revenue:15263313, checks:7884, avgCheck:1936, avgSPP:29.1, forceMajeure:false,
-        dayRecord:794275, dayRecordDate:"25.07.2026 (пт)" },
+      { month:"Июль 2026", revenue:15263313, checks:7884, avgCheck:1936, avgSPP:29.1, forceMajeure:false },
     ],
     mobar: [
       { month:"Август 2025", revenue:1419500, checks:612, avgCheck:673, avgSPP:2.9, forceMajeure:false },
@@ -1788,6 +1787,13 @@ const BH_PHOTOS = [
       { month:"Июнь 2026", revenue:6916443, checks:7182, avgCheck:963, avgSPP:14.6, forceMajeure:false },
       { month:"Июль 2026", revenue:6902942, checks:6801, avgCheck:1015, avgSPP:13.1, forceMajeure:false },
     ],
+  };
+
+  // Рекорд выручки за день по точке — обновляется вручную владельцем,
+  // не привязан к тому, заморожен месяц в REVENUE_HISTORY или ещё живой.
+  const DAY_RECORDS = {
+    bh: { value:1001882, date:"18.08.2026 (вт)" },
+    mobar: { value:538623, date:"18.08.2026 (вт)" },
   };
 
   function parseRuMonthLabel(label){
@@ -1904,9 +1910,9 @@ const BH_PHOTOS = [
         ${totalGrowth!=null ? `<li>📈 С ${escapeHtml(first.month)} по ${escapeHtml(closedRows[closedRows.length-1].month)} выручка выросла с ${fmtNum(first.revenue)} ₽ до ${fmtNum(closedRows[closedRows.length-1].revenue)} ₽ (${totalGrowth>=0?'+':''}${fmtNum(totalGrowth,1)}%)</li>` : ''}
         ${fmMonths.length ? `<li>⚠️ Форс-мажор фиксировался в: ${fmMonths.map(escapeHtml).join(', ')} — выручка в эти месяцы просела относительно плана</li>` : ''}
       `;
-      const recordRow = rows.find(r=>r.dayRecord);
-      if(recordRow){
-        notesHtml += `<li>🔥 Рекорд выручки за день — ${fmtNum(recordRow.dayRecord)} ₽ (${escapeHtml(recordRow.dayRecordDate)})</li>`;
+      const record = DAY_RECORDS[point];
+      if(record){
+        notesHtml += `<li>🔥 Рекорд выручки за день — ${fmtNum(record.value)} ₽ (${escapeHtml(record.date)})</li>`;
       }
       notesHtml += `</ul>`;
       notesCard.innerHTML = notesHtml;
