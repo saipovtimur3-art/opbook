@@ -1,13 +1,20 @@
 {
-  "_comment": "Скопируй в config.json и заполни. config.json в git не коммитить: там пароль.",
+  "_comment": "Скопируй в config.json и заполни. config.json в git не коммитить: там токен и пароли.",
+  "telegram": {
+    "token": "123456:ABC... (выдаёт @BotFather)",
+    "allowed_chats": [],
+    "_allowed_chats": "ID чатов, откуда бот принимает отчёты. Пусто — бот подскажет ID в ответ на /start."
+  },
+  "db": "kassir.db",
   "server": {
+    "_comment": "Нужно только для прямого API (pull.py / probe.py). Для загрузки через Telegram не требуется.",
     "url": "https://ВАШ-СЕРВЕР.iiko.it",
     "login": "api_user",
     "password": "********",
     "verify_ssl": true
   },
   "fields": {
-    "_comment": "Имена полей OLAP. Проверить командой: python probe.py",
+    "_comment": "Имена полей OLAP для API. Проверить командой: python probe.py",
     "date": "OpenDate.Typed",
     "department": "Department",
     "cashier": "Cashier",
@@ -23,23 +30,31 @@
   },
   "points": {
     "bh": {
+      "name": "Burger Heroes",
       "department": "Burger Heroes Внуково",
+      "match": ["burger", "бургер", "bh"],
+      "bonus": {"base": 1.25, "plan": 2},
+      "plans": {"rev": 60000, "avg": 780, "spp": 14},
       "rules": {
-        "drink":   {"type": "pct",   "groups": ["Напитки", "Холодные напитки", "Горячие напитки"]},
-        "sauce":   {"type": "pct",   "groups": ["Соусы", "Допы"]},
-        "dessert": {"type": "pct",   "groups": ["Закуски", "Десерты"]},
-        "combo":   {"type": "pct",   "dish_contains": ["комбо"]},
-        "size":    {"type": "pct",   "dish_contains": [" L", "большой", "большая"]},
-        "month":   {"type": "count", "dishes": ["Бургер месяца"]}
+        "drink":   {"type": "pct",   "plan": 65, "icon": "🥤", "label": "напиток", "groups": ["Напитки", "Холодные напитки", "Горячие напитки"]},
+        "sauce":   {"type": "pct",   "plan": 20, "icon": "🥫", "label": "соус/доп", "groups": ["Соусы", "Допы"]},
+        "dessert": {"type": "pct",   "plan": 20, "icon": "🍟", "label": "закуска/десерт", "groups": ["Закуски", "Десерты"]},
+        "combo":   {"type": "pct",   "plan": 12, "icon": "🍔", "label": "комбо", "dish_contains": ["комбо"]},
+        "size":    {"type": "pct",   "plan": 40, "icon": "⬆️", "label": "апсайз", "dish_contains": [" L", "большой", "большая"]},
+        "month":   {"type": "count", "plan": 5,  "icon": "⭐", "label": "бургер месяца", "dishes": ["Бургер месяца"]}
       }
     },
     "mo": {
+      "name": "Мо Бар",
       "department": "Мо Бар Внуково",
+      "match": ["мо бар", "mo bar", "мобар"],
+      "bonus": {"base": 1.25, "plan": 2},
+      "plans": {"rev": 45000, "avg": 650, "spp": 6},
       "rules": {
-        "size":    {"type": "pct",   "dish_contains": [" L", "0,4", "0.4"]},
-        "dessert": {"type": "pct",   "groups": ["Десерты", "Выпечка"]},
-        "syrup":   {"type": "pct",   "groups": ["Сиропы", "Добавки"]},
-        "month":   {"type": "count", "dishes": ["Напиток месяца"]}
+        "size":    {"type": "pct",   "plan": 40, "icon": "⬆️", "label": "объём L", "dish_contains": [" L", "0,4", "0.4"]},
+        "dessert": {"type": "pct",   "plan": 25, "icon": "🥐", "label": "десерт", "groups": ["Десерты", "Выпечка"]},
+        "syrup":   {"type": "pct",   "plan": 20, "icon": "🍯", "label": "сироп/шот", "groups": ["Сиропы", "Добавки"]},
+        "month":   {"type": "count", "plan": 6,  "icon": "⭐", "label": "напиток месяца", "dishes": ["Напиток месяца"]}
       }
     }
   }
