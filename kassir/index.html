@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#E2472B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Смена · VKO</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍔</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14171A; --dim:rgba(20,23,26,.5); --line:rgba(20,23,26,.08);
+    --bg:#FFF6F1; --card:#FFFFFF;
+    --acc:#E2472B; --acc2:#F5B700; --accSoft:#FDE7E1;
+    --ok:#2E8B47; --okSoft:#E5F4E9; --bad:#C1272D; --wait:#B9BEC4;
+  }
+  body.mo{ --acc:#8A5A34; --acc2:#D9A066; --accSoft:#F3E7DC; --bg:#FAF5F0; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:Inter,-apple-system,sans-serif; }
+  #app{ max-width:480px; margin:0 auto; min-height:100vh; padding:16px 16px 96px; }
+  h1,h2,h3{ margin:0; }
+  .brand{ font-family:'Archivo Black',sans-serif; color:var(--acc); text-align:center; font-size:22px; letter-spacing:.5px; margin:4px 0 14px; }
+  .brand small{ display:block; font-family:Inter; font-weight:600; font-size:12px; color:var(--dim); letter-spacing:0; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 16px; margin-bottom:10px; box-shadow:0 6px 18px -14px rgba(20,23,26,.35); }
+  .row{ display:flex; align-items:center; gap:12px; }
+  .between{ justify-content:space-between; }
+  .dim{ color:var(--dim); } .sm{ font-size:13px; } .xs{ font-size:12px; }
+  .b{ font-weight:700; } .xb{ font-weight:800; }
+  .chip{ display:inline-block; background:var(--accSoft); color:var(--ink); border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600; }
+  .btn{ display:flex; align-items:center; justify-content:center; gap:10px; width:100%; border:0; border-radius:14px; padding:15px; font:700 16px Inter; cursor:pointer; background:var(--acc); color:#fff; box-shadow:0 10px 22px -12px var(--acc); }
+  .btn.ghost{ background:#fff; color:var(--acc); border:1.5px solid var(--accSoft); box-shadow:none; }
+  .btn.dark{ background:var(--ink); box-shadow:none; }
+  .btn.sm{ padding:9px 12px; font-size:13px; border-radius:10px; width:auto; }
+  .btn.ok{ background:var(--ok); box-shadow:none; } .btn.bad{ background:var(--bad); box-shadow:none; }
+  .btn:active{ transform:scale(.98); }
+  .ico{ width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex:none; }
+  .list .item{ display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); cursor:pointer; }
+  .list .item:last-child{ border-bottom:0; }
+  .chev{ margin-left:auto; color:var(--dim); font-size:20px; }
+  .bar{ height:6px; background:#F0F1F3; border-radius:4px; overflow:hidden; margin-top:6px; }
+  .bar i{ display:block; height:100%; background:var(--acc); border-radius:4px; }
+  .bar i.full{ background:var(--ok); }
+  .sect{ font-size:12px; font-weight:700; letter-spacing:.6px; color:var(--dim); text-transform:uppercase; margin:18px 4px 8px; }
+  .mark{ width:28px; height:28px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:15px; }
+  .mark.ok{ background:var(--ok); } .mark.no{ background:#D3D6DA; } .mark.wait{ background:#fff; border:2px dashed var(--wait); color:var(--wait); }
+  .metric{ display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .metric:last-child{ border-bottom:0; }
+  .metric .r{ margin-left:auto; text-align:right; }
+  .plus{ color:var(--ok); font-weight:800; } .zero{ color:var(--dim); font-weight:700; }
+  .over{ color:var(--acc); font-size:11px; font-weight:700; }
+  .hero{ background:linear-gradient(135deg,var(--acc),color-mix(in srgb,var(--acc) 70%,var(--acc2))); color:#fff; border-radius:20px; padding:18px; margin:-16px -16px 14px; border-radius:0 0 22px 22px; }
+  .hero .xs{ opacity:.85; }
+  .big{ font-size:44px; font-weight:800; color:var(--acc); letter-spacing:-1px; text-align:center; }
+  .three{ display:grid; grid-template-columns:repeat(3,1fr); text-align:center; border-top:1px dashed var(--line); margin-top:10px; padding-top:10px; }
+  .two{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .gauge{ text-align:center; padding:14px 8px; }
+  .gauge .lab{ font-weight:600; font-size:13px; margin-top:2px; }
+  .pill{ display:inline-block; margin-top:8px; padding:5px 10px; border-radius:999px; font-size:12px; font-weight:700; background:var(--okSoft); color:var(--ok); }
+  .pill.warn{ background:#FFF3D6; color:#9A6B00; } .pill.neg{ background:#FBE3E4; color:var(--bad); }
+  .tabs{ position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line); display:flex; justify-content:center; padding:6px 0 calc(6px + env(safe-area-inset-bottom)); z-index:5; }
+  .tabs .in{ display:flex; width:100%; max-width:480px; }
+  .tabs button{ flex:1; background:none; border:0; font:600 11px Inter; color:var(--dim); padding:4px 0; cursor:pointer; }
+  .tabs button span{ display:block; font-size:22px; line-height:1.2; filter:grayscale(1); opacity:.6; }
+  .tabs button.on{ color:var(--acc); } .tabs button.on span{ filter:none; opacity:1; }
+  .seg{ display:flex; background:#fff; border:1px solid var(--line); border-radius:12px; padding:3px; margin-bottom:12px; overflow-x:auto; }
+  .seg button{ flex:1; border:0; background:none; padding:8px 10px; border-radius:9px; font:600 13px Inter; color:var(--dim); cursor:pointer; white-space:nowrap; }
+  .seg button.on{ background:var(--acc); color:#fff; }
+  label.f{ display:block; margin:10px 0 4px; font-size:13px; font-weight:600; }
+  input,select{ width:100%; font:500 16px Inter; padding:12px; border-radius:12px; border:1px solid rgba(20,23,26,.15); background:#fff; color:var(--ink); }
+  input:focus,select:focus{ outline:2px solid var(--acc); border-color:transparent; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th{ text-align:left; color:var(--dim); font-weight:600; font-size:11px; text-transform:uppercase; padding:6px 4px; border-bottom:1px solid var(--line); }
+  td{ padding:9px 4px; border-bottom:1px solid var(--line); }
+  td.n,th.n{ text-align:right; white-space:nowrap; }
+  .scroll{ overflow-x:auto; margin:0 -4px; }
+  .back{ background:none; border:0; font:600 15px Inter; color:var(--acc); padding:4px 0 12px; cursor:pointer; }
+  .modal{ position:fixed; inset:0; background:rgba(20,23,26,.45); display:flex; align-items:flex-end; justify-content:center; z-index:10; }
+  .modal .sheet{ background:#fff; width:100%; max-width:480px; border-radius:22px 22px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom)); max-height:88vh; overflow:auto; }
+  .promo{ background:#FFF8E1; border:1px solid #F7E3A1; }
+  .bell{ position:relative; }
+  .bell b{ position:absolute; top:-6px; right:-8px; background:var(--bad); color:#fff; font-size:11px; border-radius:999px; padding:1px 6px; }
+  .rank{ width:28px; height:28px; border-radius:50%; background:#F0F1F3; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; flex:none; }
+  .rank.g1{ background:#F5B700; color:#fff; } .rank.g2{ background:#B9BEC4; color:#fff; } .rank.g3{ background:#C98A55; color:#fff; }
+  .me{ background:var(--accSoft); border-radius:10px; }
+  .grid-in{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .mrow{ display:grid; grid-template-columns:1.6fr .8fr .8fr; gap:6px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); }
+  .mrow input{ padding:8px; font-size:14px; }
+  .toast{ position:fixed; left:50%; bottom:90px; transform:translateX(-50%); background:var(--ink); color:#fff; padding:10px 16px; border-radius:12px; font-size:14px; font-weight:600; z-index:20; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal"></div>
+<script>
+/* ============================================================
+   Смена · VKO — приложение кассира/бариста
+   Burger Heroes (гейты 25–26) и Мо Бар (гейты 29–30)
+   Прототип: данные хранятся в localStorage браузера.
+   ============================================================ */
+const LS = 'vko_kassir_v1';
+const MANAGER_PIN = '1234';
+
+/* ---------- утилиты ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => Math.round(n || 0).toLocaleString('ru-RU');
+const rub = n => fmt(n) + ' ₽';
+const uid = () => Math.random().toString(36).slice(2, 9);
+const pad = n => String(n).padStart(2, '0');
+const hm = d => pad(d.getHours()) + ':' + pad(d.getMinutes());
+const MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const WD = ['вс','пн','вт','ср','чт','пт','сб'];
+const dayStr = ts => { const d = new Date(ts); return d.getDate() + ' ' + MONTHS[d.getMonth()] + ', ' + WD[d.getDay()]; };
+const durStr = h => { const H = Math.floor(h), M = Math.round((h - H) * 60); return H + ' ч ' + M + ' мин'; };
+
+function toast(t){ const el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 1800); }
+
+/* ---------- стартовые данные ---------- */
+function defaultMetrics(point){
+  if (point === 'bh') return [
+    {id:'rev',    name:'Выручка',            hint:'по твоим чекам',              type:'money', plan:60000, reward:100, step:5000, stepReward:20, icon:'📊', color:'#E2472B'},
+    {id:'avg',    name:'Средний чек',        hint:'выручка / кол-во чеков',      type:'avg',   plan:780,   reward:100, step:20,   stepReward:10, icon:'🧾', color:'#5457E5'},
+    {id:'drink',  name:'Напиток в чеке',     hint:'доля чеков с напитком',       type:'pct',   plan:65,    reward:90,  step:1,    stepReward:2,  icon:'🥤', color:'#2BA6DE', ask:'Чеков с напитком'},
+    {id:'sauce',  name:'Соус или доп',       hint:'доля чеков с соусом/допом',   type:'pct',   plan:20,    reward:80,  step:1,    stepReward:2,  icon:'🥫', color:'#2E8B47', ask:'Чеков с соусом/допом'},
+    {id:'dessert',name:'Закуска или десерт', hint:'фри, наггетсы, десерт',       type:'pct',   plan:20,    reward:60,  step:1,    stepReward:2,  icon:'🍟', color:'#F5B700', ask:'Чеков с закуской/десертом'},
+    {id:'combo',  name:'Комбо',              hint:'доля чеков с комбо',          type:'pct',   plan:12,    reward:70,  step:1,    stepReward:2,  icon:'🍔', color:'#E2472B', ask:'Чеков с комбо'},
+    {id:'size',   name:'Размер «побольше»',  hint:'напиток/фри большого размера',type:'pct',   plan:40,    reward:50,  step:1,    stepReward:2,  icon:'⬆️', color:'#8E5BD9', ask:'Чеков с апсайзом'},
+    {id:'month',  name:'Бургер месяца',      hint:'позиция месяца, шт',          type:'count', plan:5,     reward:70,  step:1,    stepReward:10, icon:'⭐', color:'#F5B700', ask:'Продано бургеров месяца'},
+    {id:'reviews',name:'Отзывы гостей',      hint:'по QR на тейбл-тенте',        type:'count', plan:3,     reward:60,  step:1,    stepReward:10, icon:'💬', color:'#E04B8B', ask:'Отзывов за смену'},
+    {id:'script', name:'Скрипт сервиса — без замечаний', hint:'6 шагов, проверка управляющего', type:'flag', plan:1, reward:60, step:1, stepReward:0, icon:'🎯', color:'#14171A'},
+  ];
+  return [
+    {id:'rev',    name:'Выручка',            hint:'по твоим чекам',              type:'money', plan:45000, reward:100, step:5000, stepReward:20, icon:'📊', color:'#8A5A34'},
+    {id:'avg',    name:'Средний чек',        hint:'выручка / кол-во чеков',      type:'avg',   plan:650,   reward:100, step:20,   stepReward:10, icon:'🧾', color:'#5457E5'},
+    {id:'size',   name:'Объём L',            hint:'доля напитков большого объёма',type:'pct',  plan:40,    reward:80,  step:1,    stepReward:2,  icon:'⬆️', color:'#8E5BD9', ask:'Чеков с объёмом L'},
+    {id:'dessert',name:'Десерт к напитку',   hint:'доля чеков с десертом',       type:'pct',   plan:25,    reward:80,  step:1,    stepReward:2,  icon:'🥐', color:'#D9A066', ask:'Чеков с десертом'},
+    {id:'syrup',  name:'Сироп / доп. шот',   hint:'доля чеков с допом',          type:'pct',   plan:20,    reward:60,  step:1,    stepReward:2,  icon:'🍯', color:'#2E8B47', ask:'Чеков с сиропом/шотом'},
+    {id:'month',  name:'Напиток месяца',     hint:'позиция месяца, шт',          type:'count', plan:6,     reward:70,  step:1,    stepReward:10, icon:'⭐', color:'#F5B700', ask:'Продано напитков месяца'},
+    {id:'reviews',name:'Отзывы гостей',      hint:'по QR на тейбл-тенте',        type:'count', plan:3,     reward:60,  step:1,    stepReward:10, icon:'💬', color:'#E04B8B', ask:'Отзывов за смену'},
+    {id:'script', name:'Скрипт сервиса — без замечаний', hint:'6 шагов, проверка управляющего', type:'flag', plan:1, reward:60, step:1, stepReward:0, icon:'🎯', color:'#14171A'},
+  ];
+}
+
+function seed(){
+  const S = {
+    points: {
+      bh: {name:'Burger Heroes', place:'VKO · Терминал A · гейты 25–26', metrics: defaultMetrics('bh')},
+      mo: {name:'Мо Бар',        place:'VKO · Терминал A · гейты 29–30', metrics: defaultMetrics('mo')},
+    },
+    staff: [
+      {id:'s1', name:'Иванова Алина',    role:'Кассир',  point:'bh', rate:300},
+      {id:'s2', name:'Петров Даниил',    role:'Кассир',  point:'bh', rate:300},
+      {id:'s3', name:'Смирнова Ксения',  role:'Кассир',  point:'bh', rate:300},
+      {id:'s4', name:'Кузнецов Артём',   role:'Старший кассир', point:'bh', rate:330},
+      {id:'s5', name:'Орлова Мария',     role:'Бариста', point:'mo', rate:310},
+      {id:'s6', name:'Волков Егор',      role:'Бариста', point:'mo', rate:310},
+      {id:'s7', name:'Лебедева Софья',   role:'Бариста', point:'mo', rate:310},
+    ],
+    shifts: [],
+  };
+  // демо-история за 14 дней (детерминированный рандом)
+  let r = 7; const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
+  const now = new Date();
+  for (let d = 14; d >= 1; d--){
+    for (const p of ['bh','mo']){
+      const team = S.staff.filter(s => s.point === p);
+      const pair = [team[d % team.length], team[(d + 1) % team.length]];
+      pair.forEach((st, k) => {
+        const start = new Date(now); start.setDate(now.getDate() - d); start.setHours(k ? 14 : 8, 0, 0, 0);
+        const hours = 12 - (k ? 0 : rnd() * 0.5);
+        const skill = 0.8 + ((st.id.charCodeAt(1) * 7) % 5) / 10 + rnd() * 0.15;
+        const checks = Math.round((p === 'bh' ? 75 : 65) + rnd() * 30);
+        const avg = (p === 'bh' ? 720 : 600) * (0.92 + skill * 0.1 + rnd() * 0.06);
+        const facts = {rev: Math.round(checks * avg), checks};
+        S.points[p].metrics.forEach(m => {
+          if (m.type === 'pct')   facts[m.id] = Math.round(checks * (m.plan / 100) * (0.7 + skill * 0.35 * rnd() + rnd() * 0.15));
+          if (m.type === 'count') facts[m.id] = Math.max(0, Math.round(m.plan * (0.5 + skill * 0.5 * rnd() + rnd() * 0.3)));
+        });
+        S.shifts.push({id: uid(), staffId: st.id, point: p, start: +start, end: +start + hours * 3600e3,
+          status:'closed', facts, scriptOk: d === 1 ? null : rnd() > 0.2, fines: rnd() > 0.93 ? [{reason:'Опоздание', amount:200}] : []});
+      });
+    }
+  }
+  return S;
+}
+
+function load(){ try { return JSON.parse(localStorage.getItem(LS)); } catch(e){ return null; } }
+function save(){ try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e){} }
+
+let S = load() || seed();
+let SESSION = (() => { try { return JSON.parse(localStorage.getItem(LS + '_s')) || {}; } catch(e){ return {}; } })();
+function saveSession(){ try { localStorage.setItem(LS + '_s', JSON.stringify(SESSION)); } catch(e){} }
+let UI = {tab:'home', view:null, param:null, mtab:'today', period:30, mpoint:'bh'};
+
+/* ---------- расчёт смены ---------- */
+const staffById = id => S.staff.find(s => s.id === id) || {name:'—', rate:0};
+const metricsOf = p => S.points[p].metrics;
+
+function factOf(m, f, scriptOk){
+  const checks = f.checks || 0;
+  switch (m.type){
+    case 'money': return f.rev || 0;
+    case 'avg':   return checks ? (f.rev || 0) / checks : 0;
+    case 'pct':   return checks ? (f[m.id] || 0) / checks * 100 : 0;
+    case 'count': return f[m.id] || 0;
+    case 'flag':  return scriptOk == null ? null : (scriptOk ? 1 : 0);
+  }
+}
+function fmtFact(m, v){
+  if (v == null) return 'ждёт';
+  if (m.type === 'money' || m.type === 'avg') return rub(v);
+  if (m.type === 'pct') return Math.round(v) + ' %';
+  if (m.type === 'flag') return v ? 'да' : 'есть замечания';
+  return fmt(v) + ' шт';
+}
+function fmtPlan(m){
+  if (m.type === 'money' || m.type === 'avg') return rub(m.plan);
+  if (m.type === 'pct') return m.plan + ' %';
+  if (m.type === 'flag') return 'проверка управляющего';
+  return m.plan + ' шт';
+}
+
+function evalShift(sh){
+  const st = staffById(sh.staffId);
+  const end = sh.end || Date.now();
+  const hours = Math.max(0, (end - sh.start) / 3600e3);
+  const f = sh.facts || {};
+  const rows = metricsOf(sh.point).map(m => {
+    const v = factOf(m, f, sh.scriptOk);
+    if (v == null) return {m, v, done:null, earn:0, over:0, prog:0};
+    const done = v >= m.plan;
+    const over = done && m.stepReward ? Math.floor((v - m.plan) / m.step + 1e-9) * m.stepReward : 0;
+    return {m, v, done, earn: done ? m.reward + over : 0, over, prog: Math.min(1, m.plan ? v / m.plan : 0)};
+  });
+  const counted = rows.filter(x => x.done != null);
+  const rating = counted.length ? Math.round(counted.reduce((a, x) => a + x.prog, 0) / counted.length * 100) : 0;
+  const bonus = rows.reduce((a, x) => a + x.earn, 0);
+  const hoursPay = Math.round(hours * st.rate);
+  const fines = (sh.fines || []).reduce((a, x) => a + (+x.amount || 0), 0);
+  return {rows, rating, bonus, hours, hoursPay, fines, total: hoursPay + bonus - fines,
+    doneN: rows.filter(x => x.done).length, n: rows.length, avg: f.checks ? f.rev / f.checks : 0};
+}
+function ratingLabel(r){
+  if (r >= 90) return ['Топ-смена 🔥',''];
+  if (r >= 75) return ['Сильная смена',''];
+  if (r >= 55) return ['Норм, можно лучше','warn'];
+  return ['Есть куда расти','neg'];
+}
+function overallRating(staffId, excludeId){
+  const list = S.shifts.filter(s => s.staffId === staffId && s.status === 'closed' && s.id !== excludeId)
+    .sort((a, b) => b.start - a.start).slice(0, 10);
+  if (!list.length) return null;
+  return Math.round(list.reduce((a, s) => a + evalShift(s).rating, 0) / list.length);
+}
+
+/* ---------- SVG-спидометр ---------- */
+function gauge(v, label, pill){
+  const R = 46, cx = 60, cy = 58, a0 = Math.PI, a = Math.PI * (1 - Math.max(0, Math.min(100, v)) / 100);
+  const p = ang => [cx + R * Math.cos(ang), cy - R * Math.sin(ang)];
+  const [x0, y0] = p(a0), [x1, y1] = p(0), [xv, yv] = p(a);
+  let ticks = '';
+  for (let i = 0; i <= 10; i++){ const t = Math.PI * (1 - i / 10); const [ax, ay] = [cx + (R - 12) * Math.cos(t), cy - (R - 12) * Math.sin(t)]; const [bx, by] = [cx + (R - 8) * Math.cos(t), cy - (R - 8) * Math.sin(t)]; ticks += `<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#E3E5E8" stroke-width="1.5"/>`; }
+  return `<div class="card gauge">
+    <svg viewBox="0 0 120 68" width="140">
+      <defs><linearGradient id="g${label.length}" x1="0" x2="1"><stop offset="0" stop-color="var(--acc)"/><stop offset="1" stop-color="var(--acc2)"/></linearGradient></defs>
+      <path d="M${x0} ${y0} A${R} ${R} 0 0 1 ${x1} ${y1}" fill="none" stroke="var(--accSoft)" stroke-width="9" stroke-linecap="round"/>
+      ${v > 0 ? `<path d="M${x0} ${y0} A${R} ${R} 0 0 1 ${xv} ${yv}" fill="none" stroke="url(#g${label.length})" stroke-width="9" stroke-linecap="round"/>` : ''}
+      ${ticks}
+      <text x="60" y="52" text-anchor="middle" font-size="22" font-weight="800" fill="var(--acc)" font-family="Inter">${v}</text>
+      <text x="60" y="64" text-anchor="middle" font-size="8" fill="#888" font-family="Inter">из 100</text>
+    </svg>
+    <div class="lab">${label}</div>${pill || ''}</div>`;
+}
+
+/* ---------- экраны ---------- */
+const me = () => S.staff.find(s => s.id === SESSION.staffId);
+const openShiftOf = id => S.shifts.find(s => s.staffId === id && s.status === 'open');
+
+function render(){
+  const app = $('#app');
+  document.body.classList.toggle('mo', (SESSION.manager ? UI.mpoint : (me() || {}).point) === 'mo');
+  if (!SESSION.staffId && !SESSION.manager){ app.innerHTML = viewLogin(); return bindTabs(false); }
+  if (SESSION.manager){ app.innerHTML = UI.view === 'result' ? viewResult(UI.param, true) : viewManager(); return bindTabs(false); }
+  let html;
+  if (UI.view === 'result') html = viewResult(UI.param);
+  else if (UI.view === 'close') html = viewClose();
+  else if (UI.tab === 'home') html = viewHome();
+  else if (UI.tab === 'rating') html = viewRating(me().point, me().id);
+  else if (UI.tab === 'history') html = viewHistory();
+  else html = viewMore();
+  app.innerHTML = html;
+  bindTabs(true);
+}
+
+function bindTabs(show){
+  let t = $('#tabs'); if (t) t.remove();
+  if (!show) return;
+  t = document.createElement('div'); t.id = 'tabs'; t.className = 'tabs';
+  const items = [['home','🏠','Главная'],['rating','🏆','Рейтинг'],['history','📋','Смены'],['more','☰','Ещё']];
+  t.innerHTML = '<div class="in">' + items.map(([k, i, l]) => `<button class="${UI.tab === k && !UI.view ? 'on' : ''}" onclick="go('${k}')"><span>${i}</span>${l}</button>`).join('') + '</div>';
+  document.body.appendChild(t);
+}
+function go(tab){ UI.tab = tab; UI.view = null; render(); scrollTo(0, 0); }
+function show(view, param){ UI.view = view; UI.param = param; render(); scrollTo(0, 0); }
+
+/* вход */
+function viewLogin(){
+  const by = p => S.staff.filter(s => s.point === p).map(s =>
+    `<div class="item" onclick="login('${s.id}')"><div class="ico" style="background:${p === 'bh' ? '#FDE7E1' : '#F3E7DC'}">${p === 'bh' ? '🍔' : '☕'}</div>
+     <div><div class="b">${esc(s.name)}</div><div class="xs dim">${esc(s.role)}</div></div><span class="chev">›</span></div>`).join('');
+  return `<div class="brand">#ЗАРАБАТЫВАЙ_БОЛЬШЕ<small>Смена · Внуково, Терминал A</small></div>
+  <h2 style="margin:6px 4px 4px">Кто на смене?</h2><div class="dim sm" style="margin:0 4px 10px">Выбери себя, чтобы открыть план и премию</div>
+  <div class="sect">Burger Heroes · гейты 25–26</div><div class="card list">${by('bh')}</div>
+  <div class="sect">Мо Бар · гейты 29–30</div><div class="card list">${by('mo')}</div>
+  <button class="btn dark" style="margin-top:14px" onclick="loginManager()">🔐 Вход для управляющего</button>`;
+}
+function login(id){ SESSION = {staffId:id}; saveSession(); UI.tab = 'home'; UI.view = null; render(); }
+function loginManager(){
+  const pin = prompt('PIN управляющего (в демо: 1234)');
+  if (pin === MANAGER_PIN){ SESSION = {manager:true}; saveSession(); UI.mtab = 'today'; UI.view = null; render(); }
+  else if (pin != null) toast('Неверный PIN');
+}
+function logout(){ SESSION = {}; saveSession(); UI.view = null; render(); }
+
+/* главная кассира */
+function viewHome(){
+  const s = me(), P = S.points[s.point], sh = openShiftOf(s.id);
+  const pending = S.shifts.filter(x => x.staffId === s.id && x.status === 'closed' && x.scriptOk == null).length;
+  let head = `<div class="row between" style="margin-bottom:6px"><div class="brand" style="margin:0;text-align:left">${esc(P.name)}</div>
+    <div class="bell" style="font-size:22px">🔔${pending ? `<b>${pending}</b>` : ''}</div></div>
+    <h2 style="font-size:24px">${esc(s.name)}</h2>
+    <div class="row" style="margin:6px 0 14px"><span class="dim">${esc(s.role)}</span><span class="chip">${esc(P.place.split('·').slice(2).join('·').trim() || P.place)}</span></div>`;
+
+  if (!sh){
+    const ov = overallRating(s.id);
+    return head + `<div class="card" style="background:#FFF4EF;border-color:#F6D5C8"><div class="row"><div style="font-size:26px">⏰</div>
+      <div><div class="b" style="color:var(--acc)">Смена не открыта</div><div class="sm dim">Открой смену и начинай рабочий день</div></div></div></div>
+      <button class="btn" onclick="openShift()"><span style="font-size:22px">▶</span> Открыть смену</button>
+      <div class="sect">Твой план на смену · ${dayStr(Date.now())}</div>
+      <div class="card list">${metricsOf(s.point).map(planItem).join('')}</div>
+      <div class="card promo row"><div style="font-size:28px">🏆</div><div><div class="b">Выполни план — получи премию!</div><div class="sm dim">Всё считается по итогам смены${ov != null ? ` · твой рейтинг ${ov}/100` : ''}</div></div></div>`;
+  }
+  const h = (Date.now() - sh.start) / 3600e3;
+  const est = Math.round(h * s.rate);
+  return head + `<div class="card" style="background:var(--okSoft);border-color:#CDE8D5"><div class="row between"><div>
+      <div class="b" style="color:var(--ok)">● Смена идёт</div><div class="sm dim">с ${hm(new Date(sh.start))} · ${durStr(h)}</div></div>
+      <div style="text-align:right"><div class="xs dim">уже за часы</div><div class="xb">${rub(est)}</div></div></div></div>
+    <div class="sect">Твой план на смену</div>
+    <div class="card list">${metricsOf(s.point).map(planItem).join('')}</div>
+    <div class="card"><div class="b" style="margin-bottom:6px">💡 Подсказки на смену</div>
+      <div class="sm" style="line-height:1.5">${tips(s.point)}</div></div>
+    <button class="btn" onclick="show('close')">⏹ Закрыть смену</button>`;
+}
+function planItem(m){
+  return `<div class="item" onclick="planInfo('${m.id}')"><div class="ico" style="background:${m.color}">${m.icon}</div>
+    <div><div class="sm">${esc(m.name)}</div><div class="xb" style="font-size:19px">${m.type === 'flag' ? 'без замечаний' : fmtPlan(m)}</div></div><span class="chev">›</span></div>`;
+}
+function tips(p){
+  return p === 'bh'
+    ? '• К каждому бургеру — «Возьмёте напиток? Сейчас комбо выгоднее».<br>• Соус к фри предлагай всегда, это +2 ₽ за каждый % сверх плана.<br>• Бургер месяца — первым в рекомендации.<br>• В конце: «Оставьте отзыв по QR, это 30 секунд».'
+    : '• «Вам L? Разница всего ... ₽, а кофе в полёт хватит дольше».<br>• К капучино — круассан или десерт.<br>• Напиток месяца — первым в рекомендации.<br>• В конце: «Оставьте отзыв по QR, это 30 секунд».';
+}
+function planInfo(id){
+  const s = me(), m = metricsOf(s.point).find(x => x.id === id);
+  modal(`<div class="row" style="margin-bottom:10px"><div class="ico" style="background:${m.color}">${m.icon}</div><h3>${esc(m.name)}</h3></div>
+    <div class="dim sm">${esc(m.hint || '')}</div>
+    <div class="card" style="margin-top:12px"><div class="row between"><span>План</span><b>${fmtPlan(m)}</b></div>
+    <div class="row between" style="margin-top:8px"><span>Премия за выполнение</span><b class="plus">+${rub(m.reward)}</b></div>
+    ${m.stepReward ? `<div class="row between" style="margin-top:8px"><span>Сверх плана</span><b>+${rub(m.stepReward)} за каждые ${m.type === 'pct' ? m.step + ' %' : m.type === 'count' ? m.step + ' шт' : rub(m.step)}</b></div>` : ''}</div>
+    <button class="btn" onclick="closeModal()">Понятно</button>`);
+}
+function openShift(){
+  const s = me();
+  S.shifts.push({id: uid(), staffId: s.id, point: s.point, start: Date.now(), status:'open', facts:{}, scriptOk:null, fines:[]});
+  save(); toast('Смена открыта. Удачи! 💪'); render();
+}
+
+/* закрытие смены: ввод факта из кассового отчёта */
+function viewClose(){
+  const s = me(), sh = openShiftOf(s.id); if (!sh) { UI.view = null; return viewHome(); }
+  const asks = metricsOf(s.point).filter(m => m.type === 'pct' || m.type === 'count');
+  return `<button class="back" onclick="show(null)">‹ Назад</button>
+  <h2>Закрытие смены</h2><div class="dim sm" style="margin:4px 0 10px">Перенеси цифры из отчёта по кассиру (X-отчёт / отчёт iiko по сотруднику)</div>
+  <div class="card">
+    <label class="f">Выручка за смену, ₽</label><input id="f_rev" type="number" inputmode="numeric" placeholder="например 62400">
+    <label class="f">Кол-во чеков</label><input id="f_checks" type="number" inputmode="numeric" placeholder="например 81">
+  </div>
+  <div class="card"><div class="grid-in">${asks.map(m => `<div><label class="f">${esc(m.ask || m.name)}</label><input id="f_${m.id}" type="number" inputmode="numeric" placeholder="0"></div>`).join('')}</div></div>
+  <div class="xs dim" style="margin:0 4px 12px">Скрипт сервиса оценит управляющий, премия по нему добавится после проверки.</div>
+  <button class="btn" onclick="closeShift()">Закрыть смену и посчитать премию</button>`;
+}
+function closeShift(){
+  const s = me(), sh = openShiftOf(s.id);
+  const num = id => { const v = $('#f_' + id); return v && v.value !== '' ? Math.max(0, +v.value) : 0; };
+  const rev = num('rev'), checks = num('checks');
+  if (!rev || !checks){ toast('Заполни выручку и кол-во чеков'); return; }
+  const facts = {rev, checks};
+  for (const m of metricsOf(s.point)) if (m.type === 'pct' || m.type === 'count'){
+    facts[m.id] = num(m.id);
+    if (m.type === 'pct' && facts[m.id] > checks){ toast(`«${m.ask}» больше, чем чеков`); return; }
+  }
+  sh.facts = facts; sh.end = Date.now(); sh.status = 'closed';
+  save(); show('result', sh.id);
+}
+
+/* результат смены */
+function viewResult(id, asManager){
+  const sh = S.shifts.find(x => x.id === id); if (!sh) return '';
+  const st = staffById(sh.staffId), e = evalShift(sh);
+  const ov = overallRating(sh.staffId), prev = overallRating(sh.staffId, sh.id);
+  const d = ov != null && prev != null ? ov - prev : 0;
+  const [lab, cls] = ratingLabel(e.rating);
+  const start = new Date(sh.start), end = new Date(sh.end || Date.now());
+  const rows = e.rows.map(x => {
+    const mk = x.done == null ? '<div class="mark wait">…</div>' : x.done ? '<div class="mark ok">✓</div>' : '<div class="mark no">—</div>';
+    return `<div class="metric">${mk}<div><div class="${x.done ? 'b' : ''}" style="${x.done === false ? 'color:var(--dim)' : ''}">${esc(x.m.name)}</div>
+      <div class="xs dim">план ${fmtPlan(x.m)}</div></div>
+      <div class="r"><div class="${x.earn ? 'plus' : 'zero'}">${x.earn ? '+' + rub(x.earn) : '0 ₽'}</div>
+      <div class="xs dim">${fmtFact(x.m, x.v)}</div>${x.over ? `<div class="over">сверх плана +${rub(x.over)}</div>` : ''}</div></div>`;
+  }).join('');
+  const fines = (sh.fines || []).length
+    ? sh.fines.map((f, i) => `<div class="row between" style="padding:6px 0"><span>${esc(f.reason)}</span><b style="color:var(--bad)">−${rub(f.amount)}${asManager ? ` <button class="btn sm ghost" style="display:inline;padding:2px 8px" onclick="delFine('${sh.id}',${i})">✕</button>` : ''}</b></div>`).join('')
+    : '<div class="row between"><span>Нарушений нет</span><b>0 ₽</b></div>';
+  return `<div class="hero"><div class="xs b">${sh.status === 'open' ? 'СМЕНА ИДЁТ' : 'СМЕНА ЗАКРЫТА'}${asManager ? ' · ' + esc(st.name) : ''}</div>
+    <h2 style="font-size:24px;margin:2px 0">Результат смены</h2>
+    <div class="xs">${dayStr(sh.start)} · ${hm(start)}–${hm(end)} · ${durStr(e.hours)} · ${esc(S.points[sh.point].name)}</div></div>
+  <div class="card" style="text-align:center"><div class="xs dim b" style="letter-spacing:1px">ЗАРАБОТАНО ЗА СМЕНУ</div>
+    <div class="big">${rub(e.total)}</div>
+    <div class="three"><div><div class="xs dim">Часы</div><div class="b">${rub(e.hoursPay)}</div></div>
+      <div><div class="xs dim">Премия</div><div class="b">${rub(e.bonus)}</div></div>
+      <div><div class="xs dim">Штрафы</div><div class="b">${rub(e.fines)}</div></div></div></div>
+  <div class="two">${gauge(e.rating, 'Рейтинг за смену', `<span class="pill ${cls}">${lab}</span>`)}
+    ${gauge(ov ?? e.rating, 'Общий рейтинг', `<span class="pill ${d < 0 ? 'neg' : ''}">${d >= 0 ? '+' : ''}${d} к прошлой</span>`)}</div>
+  <div class="sect">Часы</div>
+  <div class="card row"><div class="mark ok">₽</div><div><div class="b">Отработано ${e.hours.toFixed(1).replace('.', ',')} ч</div><div class="xs dim">ставка ${st.rate} ₽/час</div></div><div class="plus" style="margin-left:auto">${rub(e.hoursPay)}</div></div>
+  <div class="sect">Показатели смены · ${e.doneN} из ${e.n}</div>
+  <div class="card">
+    <div class="row between xs dim" style="padding-bottom:6px;border-bottom:1px solid var(--line)"><span>Выручка ${rub(sh.facts.rev)} · чеков ${fmt(sh.facts.checks)}</span><span>ср. чек ${rub(e.avg)}</span></div>
+    ${rows}</div>
+  <div class="sect">Штрафы</div><div class="card">${fines}</div>
+  ${asManager ? `<div class="two" style="margin-bottom:10px"><button class="btn ok" onclick="setScript('${sh.id}',true)">✓ Скрипт ок</button><button class="btn bad" onclick="setScript('${sh.id}',false)">✕ Замечания</button></div>
+    <button class="btn ghost" style="margin-bottom:10px" onclick="addFine('${sh.id}')">+ Добавить штраф</button>` : ''}
+  <button class="btn" onclick="${asManager ? 'UI.view=null;render()' : 'go(\'home\')'}">Понятно</button>
+  <button class="btn ghost" style="margin-top:10px" onclick="howBonus('${sh.point}')">Как считается премия</button>`;
+}
+function howBonus(p){
+  const ms = metricsOf(p);
+  modal(`<h3 style="margin-bottom:8px">Как считается премия</h3>
+  <div class="sm" style="line-height:1.55">
+  <b>Заработок = часы × ставка + премия − штрафы.</b><br><br>
+  За каждый выполненный показатель — фиксированная премия. Перевыполнил — получаешь доплату за каждый шаг сверх плана. Не выполнил — 0 ₽ по этому пункту, остальные считаются отдельно.<br><br>
+  <b>Рейтинг смены</b> (0–100) — среднее выполнение плана по всем показателям. <b>Общий рейтинг</b> — среднее по последним 10 сменам.</div>
+  <table style="margin:12px 0"><tr><th>Показатель</th><th class="n">План</th><th class="n">Премия</th></tr>
+  ${ms.map(m => `<tr><td>${esc(m.name)}</td><td class="n">${m.type === 'flag' ? '—' : fmtPlan(m)}</td><td class="n">${rub(m.reward)}${m.stepReward ? `<div class="xs dim">+${m.stepReward}/${m.type === 'money' ? fmt(m.step) + '₽' : m.type === 'avg' ? m.step + '₽' : m.step + (m.type === 'pct' ? '%' : 'шт')}</div>` : ''}</td></tr>`).join('')}
+  <tr><td class="b">Максимум за план</td><td></td><td class="n b">${rub(ms.reduce((a, m) => a + m.reward, 0))}</td></tr></table>
+  <button class="btn" onclick="closeModal()">Понятно</button>`);
+}
+
+/* рейтинг */
+function leaderboard(point, days){
+  const from = Date.now() - days * 864e5;
+  return S.staff.filter(s => s.point === point).map(s => {
+    const sh = S.shifts.filter(x => x.staffId === s.id && x.status === 'closed' && x.start >= from);
+    const ev = sh.map(evalShift);
+    const rev = sh.reduce((a, x) => a + (x.facts.rev || 0), 0), checks = sh.reduce((a, x) => a + (x.facts.checks || 0), 0);
+    const share = id => checks ? sh.reduce((a, x) => a + (x.facts[id] || 0), 0) / checks * 100 : 0;
+    return {s, n: sh.length, rev, checks, avg: checks ? rev / checks : 0,
+      rating: ev.length ? Math.round(ev.reduce((a, e) => a + e.rating, 0) / ev.length) : 0,
+      bonus: ev.reduce((a, e) => a + e.bonus, 0), total: ev.reduce((a, e) => a + e.total, 0),
+      drink: share(point === 'bh' ? 'drink' : 'dessert'), done: ev.reduce((a, e) => a + e.doneN, 0), all: ev.reduce((a, e) => a + e.n, 0)};
+  }).sort((a, b) => b.rating - a.rating || b.avg - a.avg);
+}
+function periodSeg(){
+  return `<div class="seg">${[[7,'7 дней'],[30,'30 дней']].map(([d, l]) => `<button class="${UI.period === d ? 'on' : ''}" onclick="UI.period=${d};render()">${l}</button>`).join('')}</div>`;
+}
+function viewRating(point, myId){
+  const lb = leaderboard(point, UI.period);
+  const pos = lb.findIndex(x => x.s.id === myId) + 1;
+  return `<h2 style="margin:4px 4px 2px">Рейтинг команды</h2><div class="dim sm" style="margin:0 4px 12px">${esc(S.points[point].name)}${pos ? ` · ты на ${pos} месте из ${lb.length}` : ''}</div>
+  ${periodSeg()}
+  <div class="card list">${lb.map((x, i) => `<div class="item ${x.s.id === myId ? 'me' : ''}" style="padding-left:6px;padding-right:6px">
+    <div class="rank ${i < 3 ? 'g' + (i + 1) : ''}">${i + 1}</div>
+    <div style="min-width:0"><div class="b">${esc(x.s.name)}</div><div class="xs dim">${x.n} смен · ср. чек ${rub(x.avg)}</div></div>
+    <div style="margin-left:auto;text-align:right"><div class="xb" style="color:var(--acc)">${x.rating}</div><div class="xs dim">премия ${rub(x.bonus)}</div></div></div>`).join('')}</div>
+  <div class="xs dim" style="margin:0 4px">Рейтинг = среднее выполнение плана по сменам за период.</div>`;
+}
+
+/* история */
+function viewHistory(){
+  const list = S.shifts.filter(x => x.staffId === me().id).sort((a, b) => b.start - a.start);
+  const closed = list.filter(x => x.status === 'closed').map(evalShift);
+  const sum = closed.reduce((a, e) => a + e.total, 0), bon = closed.reduce((a, e) => a + e.bonus, 0);
+  return `<h2 style="margin:4px 4px 12px">Мои смены</h2>
+  <div class="two"><div class="card"><div class="xs dim">Заработано</div><div class="xb" style="font-size:20px">${rub(sum)}</div></div>
+    <div class="card"><div class="xs dim">Из них премия</div><div class="xb" style="font-size:20px;color:var(--ok)">${rub(bon)}</div></div></div>
+  <div class="card list">${list.map(shiftItem).join('') || '<div class="dim sm">Пока нет смен</div>'}</div>`;
+}
+function shiftItem(sh, withName){
+  const e = evalShift(sh);
+  return `<div class="item" onclick="show('result','${sh.id}')"><div class="rank" style="width:44px;height:44px;border-radius:12px;background:var(--accSoft);color:var(--acc)">${sh.status === 'open' ? '●' : e.rating}</div>
+    <div><div class="b">${withName ? esc(staffById(sh.staffId).name) : dayStr(sh.start)}</div>
+    <div class="xs dim">${withName ? dayStr(sh.start) + ' · ' : ''}${sh.status === 'open' ? 'идёт сейчас' : `${e.doneN}/${e.n} показателей${sh.scriptOk == null ? ' · ждёт проверки' : ''}`}</div></div>
+    <div style="margin-left:auto;text-align:right"><div class="b">${sh.status === 'open' ? '—' : rub(e.total)}</div><div class="xs plus">${sh.status === 'open' ? '' : '+' + rub(e.bonus)}</div></div></div>`;
+}
+
+/* ещё */
+function viewMore(){
+  const s = me();
+  const steps = ['Приветствие и зрительный контакт','Принять заказ, уточнить детали','Предложить допродажу (напиток / соус / комбо)','Озвучить сумму, принять оплату','Выдать заказ, назвать позиции','Попрощаться, пригласить оставить отзыв'];
+  return `<h2 style="margin:4px 4px 12px">Ещё</h2>
+  <div class="card"><div class="b">${esc(s.name)}</div><div class="sm dim">${esc(s.role)} · ${esc(S.points[s.point].name)} · ставка ${s.rate} ₽/ч</div></div>
+  <div class="sect">Скрипт сервиса · 6 шагов</div>
+  <div class="card">${steps.map((t, i) => `<div class="row" style="padding:7px 0"><div class="rank">${i + 1}</div><div class="sm">${t}</div></div>`).join('')}</div>
+  <div class="card list">
+    <div class="item" onclick="howBonus('${s.point}')"><div class="ico" style="background:var(--accSoft)">❓</div><div class="b">Как считается премия</div><span class="chev">›</span></div>
+    <div class="item" onclick="logout()"><div class="ico" style="background:#F0F1F3">🚪</div><div class="b">Сменить сотрудника</div><span class="chev">›</span></div>
+  </div>`;
+}
+
+/* ================== КАБИНЕТ УПРАВЛЯЮЩЕГО ================== */
+function viewManager(){
+  const tabs = [['today','Сегодня'],['stats','Аналитика'],['plans','Планы'],['team','Команда']];
+  const pointSeg = `<div class="seg">${['bh','mo'].map(p => `<button class="${UI.mpoint === p ? 'on' : ''}" onclick="UI.mpoint='${p}';render()">${p === 'bh' ? '🍔 Burger Heroes' : '☕ Мо Бар'}</button>`).join('')}</div>`;
+  let body = '';
+  if (UI.mtab === 'today') body = mToday();
+  if (UI.mtab === 'stats') body = mStats();
+  if (UI.mtab === 'plans') body = mPlans();
+  if (UI.mtab === 'team')  body = mTeam();
+  return `<div class="row between"><div class="brand" style="margin:0;text-align:left">Кабинет управляющего</div><button class="btn sm ghost" onclick="logout()">Выйти</button></div>
+  <div class="dim sm" style="margin:2px 0 12px">${esc(S.points[UI.mpoint].place)}</div>
+  ${pointSeg}
+  <div class="seg">${tabs.map(([k, l]) => `<button class="${UI.mtab === k ? 'on' : ''}" onclick="UI.mtab='${k}';render()">${l}</button>`).join('')}</div>
+  ${body}`;
+}
+function mToday(){
+  const p = UI.mpoint;
+  const open = S.shifts.filter(x => x.point === p && x.status === 'open');
+  const pend = S.shifts.filter(x => x.point === p && x.status === 'closed' && x.scriptOk == null).sort((a, b) => b.start - a.start);
+  const recent = S.shifts.filter(x => x.point === p && x.status === 'closed').sort((a, b) => b.start - a.start).slice(0, 8);
+  const lb = leaderboard(p, 1).filter(x => x.n);
+  const rev = lb.reduce((a, x) => a + x.rev, 0), ch = lb.reduce((a, x) => a + x.checks, 0);
+  return `<div class="two"><div class="card"><div class="xs dim">Выручка за 24 ч</div><div class="xb" style="font-size:20px">${rub(rev)}</div></div>
+    <div class="card"><div class="xs dim">Средний чек</div><div class="xb" style="font-size:20px">${rub(ch ? rev / ch : 0)}</div></div></div>
+  <div class="sect">На смене сейчас · ${open.length}</div>
+  <div class="card list">${open.map(sh => shiftItem(sh, true)).join('') || '<div class="dim sm">Никто не открыл смену</div>'}</div>
+  <div class="sect">Проверить скрипт · ${pend.length}</div>
+  <div class="card">${pend.map(sh => `<div class="row between" style="padding:8px 0;border-bottom:1px solid var(--line)">
+    <div onclick="show('result','${sh.id}')" style="cursor:pointer"><div class="b">${esc(staffById(sh.staffId).name)}</div><div class="xs dim">${dayStr(sh.start)}</div></div>
+    <div class="row" style="gap:6px"><button class="btn sm ok" onclick="setScript('${sh.id}',true)">✓</button><button class="btn sm bad" onclick="setScript('${sh.id}',false)">✕</button></div></div>`).join('') || '<div class="dim sm">Всё проверено 👌</div>'}</div>
+  <div class="sect">Последние смены</div>
+  <div class="card list">${recent.map(sh => shiftItem(sh, true)).join('')}</div>`;
+}
+function mStats(){
+  const p = UI.mpoint, lb = leaderboard(p, UI.period).filter(x => x.n);
+  const rev = lb.reduce((a, x) => a + x.rev, 0), ch = lb.reduce((a, x) => a + x.checks, 0), bon = lb.reduce((a, x) => a + x.bonus, 0);
+  const extra = p === 'bh' ? 'Напиток' : 'Десерт';
+  return `${periodSeg()}
+  <div class="two"><div class="card"><div class="xs dim">Выручка</div><div class="xb" style="font-size:19px">${rub(rev)}</div></div>
+    <div class="card"><div class="xs dim">Средний чек</div><div class="xb" style="font-size:19px">${rub(ch ? rev / ch : 0)}</div></div>
+    <div class="card"><div class="xs dim">Чеков</div><div class="xb" style="font-size:19px">${fmt(ch)}</div></div>
+    <div class="card"><div class="xs dim">Премии к выплате</div><div class="xb" style="font-size:19px">${rub(bon)}</div><div class="xs dim">${rev ? (bon / rev * 100).toFixed(1) : 0}% от выручки</div></div></div>
+  <div class="sect">По сотрудникам</div>
+  <div class="card scroll"><table><tr><th>Сотрудник</th><th class="n">Смен</th><th class="n">Выручка</th><th class="n">Ср. чек</th><th class="n">${extra}</th><th class="n">План</th><th class="n">Рейт.</th><th class="n">Премия</th></tr>
+  ${lb.map(x => `<tr><td class="b">${esc(x.s.name)}</td><td class="n">${x.n}</td><td class="n">${fmt(x.rev)}</td><td class="n">${fmt(x.avg)}</td><td class="n">${Math.round(x.drink)}%</td><td class="n">${x.all ? Math.round(x.done / x.all * 100) : 0}%</td><td class="n b" style="color:var(--acc)">${x.rating}</td><td class="n">${fmt(x.bonus)}</td></tr>`).join('')}
+  </table></div>
+  <div class="card">${metricsOf(p).filter(m => m.type === 'pct').map(m => {
+    const v = ch ? lb.reduce((a, x) => a + S.shifts.filter(s => s.staffId === x.s.id && s.status === 'closed' && s.start >= Date.now() - UI.period * 864e5).reduce((b, s) => b + (s.facts[m.id] || 0), 0), 0) / ch * 100 : 0;
+    return `<div style="padding:6px 0"><div class="row between sm"><span>${m.icon} ${esc(m.name)}</span><b>${Math.round(v)}% <span class="dim xs">/ план ${m.plan}%</span></b></div><div class="bar"><i class="${v >= m.plan ? 'full' : ''}" style="width:${Math.min(100, v / m.plan * 100)}%"></i></div></div>`;
+  }).join('')}</div>
+  <button class="btn ghost" onclick="exportCSV()">⬇ Выгрузить смены в CSV (Excel)</button>`;
+}
+function mPlans(){
+  const p = UI.mpoint;
+  return `<div class="dim sm" style="margin:0 4px 8px">План и премия на одну смену одного сотрудника. Сверх плана: доплата ₽ за каждый шаг.</div>
+  <div class="card">
+  <div class="mrow xs dim b"><span>Показатель</span><span>План</span><span>Премия ₽</span></div>
+  ${metricsOf(p).map((m, i) => `<div class="mrow"><div><div class="sm b">${m.icon} ${esc(m.name)}</div>
+    ${m.stepReward || m.type !== 'flag' ? `<div class="xs dim">сверх: <input style="width:56px;display:inline;padding:3px 5px;font-size:12px" type="number" value="${m.stepReward}" onchange="setM(${i},'stepReward',this.value)"> ₽ за ${m.type === 'pct' ? m.step + '%' : m.type === 'count' ? m.step + ' шт' : rub(m.step)}</div>` : ''}</div>
+    <input type="number" value="${m.plan}" ${m.type === 'flag' ? 'disabled' : ''} onchange="setM(${i},'plan',this.value)">
+    <input type="number" value="${m.reward}" onchange="setM(${i},'reward',this.value)"></div>`).join('')}
+  </div>
+  <div class="card row between"><span class="b">Максимум премии за смену</span><span class="xb">${rub(metricsOf(p).reduce((a, m) => a + m.reward, 0))}</span></div>
+  <button class="btn ghost" onclick="if(confirm('Вернуть планы по умолчанию?')){S.points[UI.mpoint].metrics=defaultMetrics(UI.mpoint);save();render()}">Сбросить планы по умолчанию</button>`;
+}
+function setM(i, k, v){ S.points[UI.mpoint].metrics[i][k] = Math.max(0, +v || 0); save(); toast('Сохранено'); render(); }
+function mTeam(){
+  const p = UI.mpoint, team = S.staff.filter(s => s.point === p);
+  return `<div class="card list">${team.map(s => `<div class="item" onclick="editStaff('${s.id}')"><div class="ico" style="background:var(--accSoft)">👤</div>
+    <div><div class="b">${esc(s.name)}</div><div class="xs dim">${esc(s.role)} · ${s.rate} ₽/ч · рейтинг ${overallRating(s.id) ?? '—'}</div></div><span class="chev">›</span></div>`).join('')}</div>
+  <button class="btn" onclick="editStaff(null)">+ Добавить сотрудника</button>
+  <button class="btn ghost" style="margin-top:10px" onclick="if(confirm('Стереть все данные и вернуть демо?')){localStorage.removeItem(LS);S=seed();save();render()}">Сбросить демо-данные</button>`;
+}
+function editStaff(id){
+  const s = id ? S.staff.find(x => x.id === id) : {name:'', role: UI.mpoint === 'bh' ? 'Кассир' : 'Бариста', point: UI.mpoint, rate:300};
+  modal(`<h3>${id ? 'Сотрудник' : 'Новый сотрудник'}</h3>
+  <label class="f">ФИО</label><input id="e_name" value="${esc(s.name)}">
+  <label class="f">Должность</label><select id="e_role">${['Кассир','Старший кассир','Бариста','Бармен','Повар'].map(r => `<option ${r === s.role ? 'selected' : ''}>${r}</option>`).join('')}</select>
+  <label class="f">Точка</label><select id="e_point"><option value="bh" ${s.point === 'bh' ? 'selected' : ''}>Burger Heroes</option><option value="mo" ${s.point === 'mo' ? 'selected' : ''}>Мо Бар</option></select>
+  <label class="f">Ставка, ₽/час</label><input id="e_rate" type="number" value="${s.rate}">
+  <button class="btn" style="margin-top:14px" onclick="saveStaff('${id || ''}')">Сохранить</button>
+  ${id ? `<button class="btn ghost" style="margin-top:8px;color:var(--bad)" onclick="delStaff('${id}')">Удалить</button>` : ''}`);
+}
+function saveStaff(id){
+  const v = {name: $('#e_name').value.trim(), role: $('#e_role').value, point: $('#e_point').value, rate: +$('#e_rate').value || 0};
+  if (!v.name) return toast('Укажи ФИО');
+  if (id) Object.assign(S.staff.find(x => x.id === id), v); else S.staff.push({id: uid(), ...v});
+  save(); closeModal(); render();
+}
+function delStaff(id){ if (!confirm('Удалить сотрудника? Его смены останутся в истории.')) return; S.staff = S.staff.filter(x => x.id !== id); save(); closeModal(); render(); }
+function setScript(id, ok){ const sh = S.shifts.find(x => x.id === id); sh.scriptOk = ok; save(); toast(ok ? 'Скрипт засчитан' : 'Отмечены замечания'); render(); }
+function addFine(id){
+  const reason = prompt('За что штраф? (опоздание, внешний вид, ...)'); if (!reason) return;
+  const amount = +prompt('Сумма, ₽', '200'); if (!amount) return;
+  S.shifts.find(x => x.id === id).fines.push({reason, amount}); save(); render();
+}
+function delFine(id, i){ S.shifts.find(x => x.id === id).fines.splice(i, 1); save(); render(); }
+function exportCSV(){
+  const p = UI.mpoint, ms = metricsOf(p);
+  const head = ['Дата','Сотрудник','Начало','Конец','Часы','Выручка','Чеков','Ср. чек', ...ms.filter(m => m.type === 'pct' || m.type === 'count').map(m => m.name), 'Скрипт','Рейтинг','За часы','Премия','Штрафы','Итого'];
+  const lines = S.shifts.filter(x => x.point === p && x.status === 'closed').sort((a, b) => a.start - b.start).map(sh => {
+    const e = evalShift(sh), f = sh.facts;
+    return [new Date(sh.start).toLocaleDateString('ru-RU'), staffById(sh.staffId).name, hm(new Date(sh.start)), hm(new Date(sh.end)), e.hours.toFixed(1).replace('.', ','),
+      f.rev, f.checks, Math.round(e.avg), ...ms.filter(m => m.type === 'pct' || m.type === 'count').map(m => f[m.id] || 0),
+      sh.scriptOk == null ? 'ждёт' : sh.scriptOk ? 'ок' : 'замечания', e.rating, e.hoursPay, e.bonus, e.fines, e.total];
+  });
+  const csv = '﻿' + [head, ...lines].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = `smeny_${p}_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+}
+
+/* модалка */
+function modal(html){ $('#modal').innerHTML = `<div class="modal" onclick="if(event.target===this)closeModal()"><div class="sheet">${html}</div></div>`; }
+function closeModal(){ $('#modal').innerHTML = ''; }
+
+if (SESSION.staffId && !me()) SESSION = {};
+render();
+setInterval(() => { if (SESSION.staffId && !UI.view && UI.tab === 'home' && openShiftOf(SESSION.staffId)) render(); }, 60000);
+</script>
+</body>
+</html>
