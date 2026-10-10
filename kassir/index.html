@@ -99,8 +99,10 @@
    Burger Heroes (гейты 25–26) и Мо Бар (гейты 29–30)
    Прототип: данные хранятся в localStorage браузера.
    ============================================================ */
-const LS = 'vko_kassir_v1';
+const LS = 'vko_kassir_v2';
 const MANAGER_PIN = '1234';
+// премия кассира: % от личной выручки, повышенный — если выполнен план по выручке за смену
+const DEFAULT_BONUS = {base:1.25, plan:2};
 
 /* ---------- утилиты ---------- */
 const $ = s => document.querySelector(s);
@@ -115,39 +117,43 @@ const WD = ['вс','пн','вт','ср','чт','пт','сб'];
 const dayStr = ts => { const d = new Date(ts); return d.getDate() + ' ' + MONTHS[d.getMonth()] + ', ' + WD[d.getDay()]; };
 const durStr = h => { const H = Math.floor(h), M = Math.round((h - H) * 60); return H + ' ч ' + M + ' мин'; };
 
+const isoDate = ts => { const d = new Date(ts); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const weekStart = ts => { const d = new Date(ts); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return +d; };
+const pctStr = v => String(v).replace('.', ',') + '%';
+
 function toast(t){ const el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 1800); }
 
 /* ---------- стартовые данные ---------- */
 function defaultMetrics(point){
   if (point === 'bh') return [
-    {id:'rev',    name:'Выручка',            hint:'по твоим чекам',              type:'money', plan:60000, reward:100, step:5000, stepReward:20, icon:'📊', color:'#E2472B'},
-    {id:'avg',    name:'Средний чек',        hint:'выручка / кол-во чеков',      type:'avg',   plan:780,   reward:100, step:20,   stepReward:10, icon:'🧾', color:'#5457E5'},
-    {id:'drink',  name:'Напиток в чеке',     hint:'доля чеков с напитком',       type:'pct',   plan:65,    reward:90,  step:1,    stepReward:2,  icon:'🥤', color:'#2BA6DE', ask:'Чеков с напитком'},
-    {id:'sauce',  name:'Соус или доп',       hint:'доля чеков с соусом/допом',   type:'pct',   plan:20,    reward:80,  step:1,    stepReward:2,  icon:'🥫', color:'#2E8B47', ask:'Чеков с соусом/допом'},
-    {id:'dessert',name:'Закуска или десерт', hint:'фри, наггетсы, десерт',       type:'pct',   plan:20,    reward:60,  step:1,    stepReward:2,  icon:'🍟', color:'#F5B700', ask:'Чеков с закуской/десертом'},
-    {id:'combo',  name:'Комбо',              hint:'доля чеков с комбо',          type:'pct',   plan:12,    reward:70,  step:1,    stepReward:2,  icon:'🍔', color:'#E2472B', ask:'Чеков с комбо'},
-    {id:'size',   name:'Размер «побольше»',  hint:'напиток/фри большого размера',type:'pct',   plan:40,    reward:50,  step:1,    stepReward:2,  icon:'⬆️', color:'#8E5BD9', ask:'Чеков с апсайзом'},
-    {id:'month',  name:'Бургер месяца',      hint:'позиция месяца, шт',          type:'count', plan:5,     reward:70,  step:1,    stepReward:10, icon:'⭐', color:'#F5B700', ask:'Продано бургеров месяца'},
-    {id:'reviews',name:'Отзывы гостей',      hint:'по QR на тейбл-тенте',        type:'count', plan:3,     reward:60,  step:1,    stepReward:10, icon:'💬', color:'#E04B8B', ask:'Отзывов за смену'},
-    {id:'script', name:'Скрипт сервиса — без замечаний', hint:'6 шагов, проверка управляющего', type:'flag', plan:1, reward:60, step:1, stepReward:0, icon:'🎯', color:'#14171A'},
+    {id:'rev',    name:'Выручка',            hint:'по твоим чекам',              type:'money', plan:60000, reward:0, step:5000, stepReward:0, icon:'📊', color:'#E2472B'},
+    {id:'avg',    name:'Средний чек',        hint:'выручка / кол-во чеков',      type:'avg',   plan:780,   reward:0, step:20,   stepReward:0, icon:'🧾', color:'#5457E5'},
+    {id:'drink',  name:'Напиток в чеке',     hint:'доля чеков с напитком',       type:'pct',   plan:65,    reward:0,  step:1,    stepReward:0,  icon:'🥤', color:'#2BA6DE', ask:'Чеков с напитком'},
+    {id:'sauce',  name:'Соус или доп',       hint:'доля чеков с соусом/допом',   type:'pct',   plan:20,    reward:0,  step:1,    stepReward:0,  icon:'🥫', color:'#2E8B47', ask:'Чеков с соусом/допом'},
+    {id:'dessert',name:'Закуска или десерт', hint:'фри, наггетсы, десерт',       type:'pct',   plan:20,    reward:0,  step:1,    stepReward:0,  icon:'🍟', color:'#F5B700', ask:'Чеков с закуской/десертом'},
+    {id:'combo',  name:'Комбо',              hint:'доля чеков с комбо',          type:'pct',   plan:12,    reward:0,  step:1,    stepReward:0,  icon:'🍔', color:'#E2472B', ask:'Чеков с комбо'},
+    {id:'size',   name:'Размер «побольше»',  hint:'напиток/фри большого размера',type:'pct',   plan:40,    reward:0,  step:1,    stepReward:0,  icon:'⬆️', color:'#8E5BD9', ask:'Чеков с апсайзом'},
+    {id:'month',  name:'Бургер месяца',      hint:'позиция месяца, шт',          type:'count', plan:5,     reward:0,  step:1,    stepReward:0, icon:'⭐', color:'#F5B700', ask:'Продано бургеров месяца'},
+    {id:'reviews',name:'Отзывы гостей',      hint:'по QR на тейбл-тенте',        type:'count', plan:3,     reward:0,  step:1,    stepReward:0, icon:'💬', color:'#E04B8B', ask:'Отзывов за смену'},
+    {id:'script', name:'Скрипт сервиса — без замечаний', hint:'6 шагов, проверка управляющего', type:'flag', plan:1, reward:0, step:1, stepReward:0, icon:'🎯', color:'#14171A'},
   ];
   return [
-    {id:'rev',    name:'Выручка',            hint:'по твоим чекам',              type:'money', plan:45000, reward:100, step:5000, stepReward:20, icon:'📊', color:'#8A5A34'},
-    {id:'avg',    name:'Средний чек',        hint:'выручка / кол-во чеков',      type:'avg',   plan:650,   reward:100, step:20,   stepReward:10, icon:'🧾', color:'#5457E5'},
-    {id:'size',   name:'Объём L',            hint:'доля напитков большого объёма',type:'pct',  plan:40,    reward:80,  step:1,    stepReward:2,  icon:'⬆️', color:'#8E5BD9', ask:'Чеков с объёмом L'},
-    {id:'dessert',name:'Десерт к напитку',   hint:'доля чеков с десертом',       type:'pct',   plan:25,    reward:80,  step:1,    stepReward:2,  icon:'🥐', color:'#D9A066', ask:'Чеков с десертом'},
-    {id:'syrup',  name:'Сироп / доп. шот',   hint:'доля чеков с допом',          type:'pct',   plan:20,    reward:60,  step:1,    stepReward:2,  icon:'🍯', color:'#2E8B47', ask:'Чеков с сиропом/шотом'},
-    {id:'month',  name:'Напиток месяца',     hint:'позиция месяца, шт',          type:'count', plan:6,     reward:70,  step:1,    stepReward:10, icon:'⭐', color:'#F5B700', ask:'Продано напитков месяца'},
-    {id:'reviews',name:'Отзывы гостей',      hint:'по QR на тейбл-тенте',        type:'count', plan:3,     reward:60,  step:1,    stepReward:10, icon:'💬', color:'#E04B8B', ask:'Отзывов за смену'},
-    {id:'script', name:'Скрипт сервиса — без замечаний', hint:'6 шагов, проверка управляющего', type:'flag', plan:1, reward:60, step:1, stepReward:0, icon:'🎯', color:'#14171A'},
+    {id:'rev',    name:'Выручка',            hint:'по твоим чекам',              type:'money', plan:45000, reward:0, step:5000, stepReward:0, icon:'📊', color:'#8A5A34'},
+    {id:'avg',    name:'Средний чек',        hint:'выручка / кол-во чеков',      type:'avg',   plan:650,   reward:0, step:20,   stepReward:0, icon:'🧾', color:'#5457E5'},
+    {id:'size',   name:'Объём L',            hint:'доля напитков большого объёма',type:'pct',  plan:40,    reward:0,  step:1,    stepReward:0,  icon:'⬆️', color:'#8E5BD9', ask:'Чеков с объёмом L'},
+    {id:'dessert',name:'Десерт к напитку',   hint:'доля чеков с десертом',       type:'pct',   plan:25,    reward:0,  step:1,    stepReward:0,  icon:'🥐', color:'#D9A066', ask:'Чеков с десертом'},
+    {id:'syrup',  name:'Сироп / доп. шот',   hint:'доля чеков с допом',          type:'pct',   plan:20,    reward:0,  step:1,    stepReward:0,  icon:'🍯', color:'#2E8B47', ask:'Чеков с сиропом/шотом'},
+    {id:'month',  name:'Напиток месяца',     hint:'позиция месяца, шт',          type:'count', plan:6,     reward:0,  step:1,    stepReward:0, icon:'⭐', color:'#F5B700', ask:'Продано напитков месяца'},
+    {id:'reviews',name:'Отзывы гостей',      hint:'по QR на тейбл-тенте',        type:'count', plan:3,     reward:0,  step:1,    stepReward:0, icon:'💬', color:'#E04B8B', ask:'Отзывов за смену'},
+    {id:'script', name:'Скрипт сервиса — без замечаний', hint:'6 шагов, проверка управляющего', type:'flag', plan:1, reward:0, step:1, stepReward:0, icon:'🎯', color:'#14171A'},
   ];
 }
 
 function seed(){
   const S = {
     points: {
-      bh: {name:'Burger Heroes', place:'VKO · Терминал A · гейты 25–26', metrics: defaultMetrics('bh')},
-      mo: {name:'Мо Бар',        place:'VKO · Терминал A · гейты 29–30', metrics: defaultMetrics('mo')},
+      bh: {name:'Burger Heroes', place:'VKO · Терминал A · гейты 25–26', bonus:{...DEFAULT_BONUS}, sppPlan:14, metrics: defaultMetrics('bh')},
+      mo: {name:'Мо Бар',        place:'VKO · Терминал A · гейты 29–30', bonus:{...DEFAULT_BONUS}, sppPlan:6,  metrics: defaultMetrics('mo')},
     },
     staff: [
       {id:'s1', name:'Иванова Алина',    role:'Кассир',  point:'bh', rate:300},
@@ -159,6 +165,7 @@ function seed(){
       {id:'s7', name:'Лебедева Софья',   role:'Бариста', point:'mo', rate:310},
     ],
     shifts: [],
+    pax: [],   // пассажиропоток МВЛ по неделям: {week:'YYYY-MM-DD' (понедельник), pax}
   };
   // демо-история за 14 дней (детерминированный рандом)
   let r = 7; const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
@@ -183,6 +190,9 @@ function seed(){
       });
     }
   }
+  // демо-пассажиропоток за две прошлые недели
+  const mon = weekStart(Date.now());
+  S.pax.push({week: isoDate(mon - 14 * 864e5), pax: 71800}, {week: isoDate(mon - 7 * 864e5), pax: 74350});
   return S;
 }
 
@@ -236,10 +246,21 @@ function evalShift(sh){
   });
   const counted = rows.filter(x => x.done != null);
   const rating = counted.length ? Math.round(counted.reduce((a, x) => a + x.prog, 0) / counted.length * 100) : 0;
-  const bonus = rows.reduce((a, x) => a + x.earn, 0);
+  // премия с выручки: базовый % или повышенный, если план по выручке выполнен
+  const B = S.points[sh.point].bonus || DEFAULT_BONUS;
+  const revRow = rows.find(x => x.m.type === 'money');
+  const planMet = !!(revRow && revRow.done);
+  const rate = planMet ? B.plan : B.base;
+  const rev = f.rev || 0;
+  const revBonus = Math.round(rev * rate / 100);
+  const revPlan = revRow ? revRow.m.plan : 0;
+  const lost = planMet ? 0 : Math.round(revPlan * B.plan / 100 - rev * B.base / 100);   // сколько дал бы план
+  if (revRow) revRow.earn = revBonus;
+  const extra = rows.reduce((a, x) => a + (x === revRow ? 0 : x.earn), 0);
+  const bonus = revBonus + extra;
   const hoursPay = Math.round(hours * st.rate);
   const fines = (sh.fines || []).reduce((a, x) => a + (+x.amount || 0), 0);
-  return {rows, rating, bonus, hours, hoursPay, fines, total: hoursPay + bonus - fines,
+  return {rows, rating, bonus, revBonus, extra, rate, planMet, lost, revPlan, B, hours, hoursPay, fines, total: hoursPay + bonus - fines,
     doneN: rows.filter(x => x.done).length, n: rows.length, avg: f.checks ? f.rev / f.checks : 0};
 }
 function ratingLabel(r){
@@ -340,7 +361,7 @@ function viewHome(){
       <button class="btn" onclick="openShift()"><span style="font-size:22px">▶</span> Открыть смену</button>
       <div class="sect">Твой план на смену · ${dayStr(Date.now())}</div>
       <div class="card list">${metricsOf(s.point).map(planItem).join('')}</div>
-      <div class="card promo row"><div style="font-size:28px">🏆</div><div><div class="b">Выполни план — получи премию!</div><div class="sm dim">Всё считается по итогам смены${ov != null ? ` · твой рейтинг ${ov}/100` : ''}</div></div></div>`;
+      ${bonusPromo(s.point)}${ov != null ? `<div class="xs dim" style="margin:0 4px">Твой общий рейтинг: ${ov}/100</div>` : ''}`;
   }
   const h = (Date.now() - sh.start) / 3600e3;
   const est = Math.round(h * s.rate);
@@ -349,9 +370,19 @@ function viewHome(){
       <div style="text-align:right"><div class="xs dim">уже за часы</div><div class="xb">${rub(est)}</div></div></div></div>
     <div class="sect">Твой план на смену</div>
     <div class="card list">${metricsOf(s.point).map(planItem).join('')}</div>
+    ${bonusPromo(s.point)}
     <div class="card"><div class="b" style="margin-bottom:6px">💡 Подсказки на смену</div>
       <div class="sm" style="line-height:1.5">${tips(s.point)}</div></div>
     <button class="btn" onclick="show('close')">⏹ Закрыть смену</button>`;
+}
+function bonusPromo(p){
+  const P = S.points[p], B = P.bonus, plan = (P.metrics.find(m => m.type === 'money') || {}).plan || 0;
+  return `<div class="card promo"><div class="row"><div style="font-size:28px">🏆</div><div><div class="b">Выполни план ${rub(plan)} — премия ${pctStr(B.plan)}!</div>
+    <div class="sm dim">Без плана — ${pctStr(B.base)} от твоей выручки</div></div></div>
+    <div class="three"><div><div class="xs dim">${rub(plan * 0.9)}</div><div class="b">${rub(plan * 0.9 * B.base / 100)}</div></div>
+      <div><div class="xs dim">${rub(plan)}</div><div class="b plus">${rub(plan * B.plan / 100)}</div></div>
+      <div><div class="xs dim">${rub(plan * 1.2)}</div><div class="b plus">${rub(plan * 1.2 * B.plan / 100)}</div></div></div>
+    <div class="xs dim" style="text-align:center;margin-top:6px">выручка за смену → премия</div></div>`;
 }
 function planItem(m){
   return `<div class="item" onclick="planInfo('${m.id}')"><div class="ico" style="background:${m.color}">${m.icon}</div>
@@ -359,7 +390,7 @@ function planItem(m){
 }
 function tips(p){
   return p === 'bh'
-    ? '• К каждому бургеру — «Возьмёте напиток? Сейчас комбо выгоднее».<br>• Соус к фри предлагай всегда, это +2 ₽ за каждый % сверх плана.<br>• Бургер месяца — первым в рекомендации.<br>• В конце: «Оставьте отзыв по QR, это 30 секунд».'
+    ? '• К каждому бургеру — «Возьмёте напиток? Сейчас комбо выгоднее».<br>• Соус к фри предлагай всегда — каждый доп поднимает выручку и средний чек.<br>• Бургер месяца — первым в рекомендации.<br>• В конце: «Оставьте отзыв по QR, это 30 секунд».'
     : '• «Вам L? Разница всего ... ₽, а кофе в полёт хватит дольше».<br>• К капучино — круассан или десерт.<br>• Напиток месяца — первым в рекомендации.<br>• В конце: «Оставьте отзыв по QR, это 30 секунд».';
 }
 function planInfo(id){
@@ -367,7 +398,10 @@ function planInfo(id){
   modal(`<div class="row" style="margin-bottom:10px"><div class="ico" style="background:${m.color}">${m.icon}</div><h3>${esc(m.name)}</h3></div>
     <div class="dim sm">${esc(m.hint || '')}</div>
     <div class="card" style="margin-top:12px"><div class="row between"><span>План</span><b>${fmtPlan(m)}</b></div>
-    <div class="row between" style="margin-top:8px"><span>Премия за выполнение</span><b class="plus">+${rub(m.reward)}</b></div>
+    ${m.type === 'money' ? `<div class="row between" style="margin-top:8px"><span>Премия без плана</span><b>${pctStr(S.points[s.point].bonus.base)} от выручки</b></div>
+      <div class="row between" style="margin-top:8px"><span>Премия с планом</span><b class="plus">${pctStr(S.points[s.point].bonus.plan)} от выручки</b></div>`
+    : m.reward ? `<div class="row between" style="margin-top:8px"><span>Доп. премия за выполнение</span><b class="plus">+${rub(m.reward)}</b></div>`
+    : `<div class="xs dim" style="margin-top:8px">Влияет на рейтинг смены и место в команде.</div>`}
     ${m.stepReward ? `<div class="row between" style="margin-top:8px"><span>Сверх плана</span><b>+${rub(m.stepReward)} за каждые ${m.type === 'pct' ? m.step + ' %' : m.type === 'count' ? m.step + ' шт' : rub(m.step)}</b></div>` : ''}</div>
     <button class="btn" onclick="closeModal()">Понятно</button>`);
 }
@@ -417,8 +451,11 @@ function viewResult(id, asManager){
     const mk = x.done == null ? '<div class="mark wait">…</div>' : x.done ? '<div class="mark ok">✓</div>' : '<div class="mark no">—</div>';
     return `<div class="metric">${mk}<div><div class="${x.done ? 'b' : ''}" style="${x.done === false ? 'color:var(--dim)' : ''}">${esc(x.m.name)}</div>
       <div class="xs dim">план ${fmtPlan(x.m)}</div></div>
-      <div class="r"><div class="${x.earn ? 'plus' : 'zero'}">${x.earn ? '+' + rub(x.earn) : '0 ₽'}</div>
-      <div class="xs dim">${fmtFact(x.m, x.v)}</div>${x.over ? `<div class="over">сверх плана +${rub(x.over)}</div>` : ''}</div></div>`;
+      <div class="r">${x.m.type === 'money'
+        ? `<div class="plus">+${rub(x.earn)}</div><div class="xs dim">${fmtFact(x.m, x.v)}</div><div class="over">${pctStr(e.rate)} от выручки</div>`
+        : x.m.reward || x.earn
+          ? `<div class="${x.earn ? 'plus' : 'zero'}">${x.earn ? '+' + rub(x.earn) : '0 ₽'}</div><div class="xs dim">${fmtFact(x.m, x.v)}</div>${x.over ? `<div class="over">сверх плана +${rub(x.over)}</div>` : ''}`
+          : `<div class="${x.done ? 'b' : 'zero'}">${fmtFact(x.m, x.v)}</div>`}</div></div>`;
   }).join('');
   const fines = (sh.fines || []).length
     ? sh.fines.map((f, i) => `<div class="row between" style="padding:6px 0"><span>${esc(f.reason)}</span><b style="color:var(--bad)">−${rub(f.amount)}${asManager ? ` <button class="btn sm ghost" style="display:inline;padding:2px 8px" onclick="delFine('${sh.id}',${i})">✕</button>` : ''}</b></div>`).join('')
@@ -435,6 +472,9 @@ function viewResult(id, asManager){
     ${gauge(ov ?? e.rating, 'Общий рейтинг', `<span class="pill ${d < 0 ? 'neg' : ''}">${d >= 0 ? '+' : ''}${d} к прошлой</span>`)}</div>
   <div class="sect">Часы</div>
   <div class="card row"><div class="mark ok">₽</div><div><div class="b">Отработано ${e.hours.toFixed(1).replace('.', ',')} ч</div><div class="xs dim">ставка ${st.rate} ₽/час</div></div><div class="plus" style="margin-left:auto">${rub(e.hoursPay)}</div></div>
+  <div class="card" style="${e.planMet ? 'background:var(--okSoft);border-color:#CDE8D5' : 'background:#FFF8E1;border-color:#F7E3A1'}">${e.planMet
+    ? `<div class="b" style="color:var(--ok)">✓ План по выручке выполнен — премия ${pctStr(e.B.plan)}</div><div class="sm dim">${rub(sh.facts.rev)} × ${pctStr(e.B.plan)} = ${rub(e.revBonus)}. Без плана было бы ${rub(sh.facts.rev * e.B.base / 100)}.</div>`
+    : `<div class="b">Премия ${pctStr(e.B.base)} от выручки: ${rub(e.revBonus)}</div><div class="sm dim">До плана ${rub(e.revPlan)} не хватило ${rub(e.revPlan - sh.facts.rev)}. С планом премия была бы ${pctStr(e.B.plan)} — это ещё <b style="color:var(--acc)">+${rub(e.lost)}</b>.</div>`}</div>
   <div class="sect">Показатели смены · ${e.doneN} из ${e.n}</div>
   <div class="card">
     <div class="row between xs dim" style="padding-bottom:6px;border-bottom:1px solid var(--line)"><span>Выручка ${rub(sh.facts.rev)} · чеков ${fmt(sh.facts.checks)}</span><span>ср. чек ${rub(e.avg)}</span></div>
@@ -450,11 +490,15 @@ function howBonus(p){
   modal(`<h3 style="margin-bottom:8px">Как считается премия</h3>
   <div class="sm" style="line-height:1.55">
   <b>Заработок = часы × ставка + премия − штрафы.</b><br><br>
-  За каждый выполненный показатель — фиксированная премия. Перевыполнил — получаешь доплату за каждый шаг сверх плана. Не выполнил — 0 ₽ по этому пункту, остальные считаются отдельно.<br><br>
+  <b>Премия = твоя личная выручка × %.</b><br>
+  • План по выручке не выполнен — <b>${pctStr(S.points[p].bonus.base)}</b>.<br>
+  • План выполнен — <b>${pctStr(S.points[p].bonus.plan)}</b> со всей выручки, а не только с превышения.<br>
+  Пример: выручка ${rub(ms[0].plan)} → ${rub(ms[0].plan * S.points[p].bonus.plan / 100)}, а на 1 000 ₽ меньше → ${rub((ms[0].plan - 1000) * S.points[p].bonus.base / 100)}.<br><br>
+  Остальные показатели (средний чек, допродажи, отзывы, скрипт) идут в рейтинг.${ms.some(m => m.reward) ? ' Некоторые дают доп. премию — см. таблицу.' : ''}<br><br>
   <b>Рейтинг смены</b> (0–100) — среднее выполнение плана по всем показателям. <b>Общий рейтинг</b> — среднее по последним 10 сменам.</div>
   <table style="margin:12px 0"><tr><th>Показатель</th><th class="n">План</th><th class="n">Премия</th></tr>
-  ${ms.map(m => `<tr><td>${esc(m.name)}</td><td class="n">${m.type === 'flag' ? '—' : fmtPlan(m)}</td><td class="n">${rub(m.reward)}${m.stepReward ? `<div class="xs dim">+${m.stepReward}/${m.type === 'money' ? fmt(m.step) + '₽' : m.type === 'avg' ? m.step + '₽' : m.step + (m.type === 'pct' ? '%' : 'шт')}</div>` : ''}</td></tr>`).join('')}
-  <tr><td class="b">Максимум за план</td><td></td><td class="n b">${rub(ms.reduce((a, m) => a + m.reward, 0))}</td></tr></table>
+  ${ms.map(m => `<tr><td>${esc(m.name)}</td><td class="n">${m.type === 'flag' ? '—' : fmtPlan(m)}</td><td class="n">${m.type === 'money' ? pctStr(S.points[p].bonus.base) + ' / ' + pctStr(S.points[p].bonus.plan) : m.reward ? '+' + rub(m.reward) : '<span class="dim">рейтинг</span>'}</td></tr>`).join('')}
+  </table>
   <button class="btn" onclick="closeModal()">Понятно</button>`);
 }
 
@@ -521,16 +565,18 @@ function viewMore(){
 
 /* ================== КАБИНЕТ УПРАВЛЯЮЩЕГО ================== */
 function viewManager(){
-  const tabs = [['today','Сегодня'],['stats','Аналитика'],['plans','Планы'],['team','Команда']];
+  const tabs = [['today','Сегодня'],['spp','СПП'],['stats','Аналитика'],['plans','Планы'],['team','Команда']];
   const pointSeg = `<div class="seg">${['bh','mo'].map(p => `<button class="${UI.mpoint === p ? 'on' : ''}" onclick="UI.mpoint='${p}';render()">${p === 'bh' ? '🍔 Burger Heroes' : '☕ Мо Бар'}</button>`).join('')}</div>`;
   let body = '';
   if (UI.mtab === 'today') body = mToday();
   if (UI.mtab === 'stats') body = mStats();
   if (UI.mtab === 'plans') body = mPlans();
   if (UI.mtab === 'team')  body = mTeam();
+  if (UI.mtab === 'spp')   body = mSpp();
   return `<div class="row between"><div class="brand" style="margin:0;text-align:left">Кабинет управляющего</div><button class="btn sm ghost" onclick="logout()">Выйти</button></div>
   <div class="dim sm" style="margin:2px 0 12px">${esc(S.points[UI.mpoint].place)}</div>
   ${pointSeg}
+  ${paxReminder()}
   <div class="seg">${tabs.map(([k, l]) => `<button class="${UI.mtab === k ? 'on' : ''}" onclick="UI.mtab='${k}';render()">${l}</button>`).join('')}</div>
   ${body}`;
 }
@@ -552,6 +598,52 @@ function mToday(){
   <div class="sect">Последние смены</div>
   <div class="card list">${recent.map(sh => shiftItem(sh, true)).join('')}</div>`;
 }
+/* ---------- пассажиропоток и СПП ---------- */
+const weekLabel = w => { const a = new Date(w), b = new Date(+a + 6 * 864e5); return a.getDate() + (a.getMonth() !== b.getMonth() ? ' ' + MONTHS[a.getMonth()].slice(0, 3) : '') + ' – ' + b.getDate() + ' ' + MONTHS[b.getMonth()].slice(0, 3); };
+const paxOf = week => (S.pax.find(x => x.week === week) || {}).pax || 0;
+function weekStats(point, weekTs){
+  const sh = S.shifts.filter(x => x.point === point && x.status === 'closed' && x.start >= weekTs && x.start < weekTs + 7 * 864e5);
+  const rev = sh.reduce((a, x) => a + (x.facts.rev || 0), 0), checks = sh.reduce((a, x) => a + (x.facts.checks || 0), 0);
+  const pax = paxOf(isoDate(weekTs));
+  return {rev, checks, pax, spp: pax ? rev / pax : null, conv: pax ? checks / pax * 100 : null, avg: checks ? rev / checks : 0};
+}
+function paxReminder(){
+  const last = isoDate(weekStart(Date.now()) - 7 * 864e5);
+  if (paxOf(last) || new Date().getDay() === 1) return '';
+  return `<div class="card promo row" style="cursor:pointer" onclick="UI.mtab='spp';render()"><div style="font-size:24px">✈️</div><div><div class="b">Внеси пассажиропоток МВЛ</div><div class="sm dim">за неделю ${weekLabel(new Date(last))} — без него не посчитать СПП</div></div><span class="chev">›</span></div>`;
+}
+function mSpp(){
+  const p = UI.mpoint, P = S.points[p], cur = weekStart(Date.now());
+  const weeks = [...new Set([...S.pax.map(x => +new Date(x.week + 'T00:00')), cur - 7 * 864e5, cur - 14 * 864e5])].sort((a, b) => b - a).slice(0, 8);
+  const last = weekStats(p, cur - 7 * 864e5);
+  return `<div class="two">
+    <div class="card"><div class="xs dim">СПП прошлой недели</div><div class="xb" style="font-size:22px;color:${last.spp == null ? 'inherit' : last.spp >= P.sppPlan ? 'var(--ok)' : 'var(--bad)'}">${last.spp == null ? '—' : last.spp.toFixed(2).replace('.', ',') + ' ₽'}</div><div class="xs dim">план ${String(P.sppPlan).replace('.', ',')} ₽</div></div>
+    <div class="card"><div class="xs dim">Конверсия</div><div class="xb" style="font-size:22px">${last.conv == null ? '—' : last.conv.toFixed(1).replace('.', ',') + '%'}</div><div class="xs dim">чеков на 100 пасс.</div></div></div>
+  <div class="sect">Внести пассажиропоток МВЛ</div>
+  <div class="card"><div class="two">
+    <div><label class="f">Неделя (понедельник)</label><input id="px_week" type="date" value="${isoDate(cur - 7 * 864e5)}"></div>
+    <div><label class="f">Пассажиров</label><input id="px_n" type="number" inputmode="numeric" placeholder="например 74 000"></div></div>
+    <button class="btn" style="margin-top:10px" onclick="savePax()">Сохранить</button>
+    <div class="xs dim" style="margin-top:8px">Пассажиропоток общий по МВЛ: один на обе точки. Приходит по вторникам за прошлую неделю.</div></div>
+  <div class="sect">По неделям · ${esc(P.name)}</div>
+  <div class="card scroll"><table><tr><th>Неделя</th><th class="n">Пасс.</th><th class="n">Выручка</th><th class="n">СПП</th><th class="n">Конв.</th><th class="n">Ср. чек</th></tr>
+  ${weeks.map(w => { const x = weekStats(p, w); return `<tr><td>${weekLabel(new Date(w))}</td><td class="n">${x.pax ? fmt(x.pax) : '<span class="dim">—</span>'}</td><td class="n">${fmt(x.rev)}</td>
+    <td class="n b" style="color:${x.spp == null ? 'inherit' : x.spp >= P.sppPlan ? 'var(--ok)' : 'var(--bad)'}">${x.spp == null ? '—' : x.spp.toFixed(2).replace('.', ',')}</td>
+    <td class="n">${x.conv == null ? '—' : x.conv.toFixed(1).replace('.', ',') + '%'}</td><td class="n">${fmt(x.avg)}</td></tr>`; }).join('')}
+  </table></div>
+  <div class="card"><label class="f" style="margin-top:0">План СПП ${esc(P.name)}, ₽ на пассажира</label>
+    <input type="number" step="0.1" value="${P.sppPlan}" onchange="S.points[UI.mpoint].sppPlan=+String(this.value).replace(',','.')||0;save();toast('Сохранено');render()"></div>
+  <div class="xs dim" style="margin:0 4px">СПП = выручка точки за неделю / пассажиропоток МВЛ. Выручка берётся из закрытых смен в приложении.</div>`;
+}
+function savePax(){
+  const d = $('#px_week').value, n = +String($('#px_n').value).replace(/\s/g, '');
+  if (!d || !n) return toast('Укажи неделю и число пассажиров');
+  const week = isoDate(weekStart(+new Date(d + 'T00:00')));
+  const ex = S.pax.find(x => x.week === week);
+  if (ex) ex.pax = n; else S.pax.push({week, pax: n});
+  save(); toast('Неделя ' + weekLabel(new Date(week + 'T00:00')) + ' сохранена'); render();
+}
+
 function mStats(){
   const p = UI.mpoint, lb = leaderboard(p, UI.period).filter(x => x.n);
   const rev = lb.reduce((a, x) => a + x.rev, 0), ch = lb.reduce((a, x) => a + x.checks, 0), bon = lb.reduce((a, x) => a + x.bonus, 0);
@@ -573,17 +665,23 @@ function mStats(){
 }
 function mPlans(){
   const p = UI.mpoint;
-  return `<div class="dim sm" style="margin:0 4px 8px">План и премия на одну смену одного сотрудника. Сверх плана: доплата ₽ за каждый шаг.</div>
+  const B = S.points[p].bonus;
+  return `<div class="sect">Премия с личной выручки</div>
+  <div class="card"><div class="two">
+    <div><label class="f">Без плана, %</label><input type="number" step="0.05" value="${B.base}" onchange="setB('base',this.value)"></div>
+    <div><label class="f">План выполнен, %</label><input type="number" step="0.05" value="${B.plan}" onchange="setB('plan',this.value)"></div></div>
+    <div class="xs dim" style="margin-top:8px">Повышенный % начисляется на всю выручку смены, если выполнен план по выручке.</div></div>
+  <div class="sect">Планы на смену одного сотрудника</div>
   <div class="card">
-  <div class="mrow xs dim b"><span>Показатель</span><span>План</span><span>Премия ₽</span></div>
-  ${metricsOf(p).map((m, i) => `<div class="mrow"><div><div class="sm b">${m.icon} ${esc(m.name)}</div>
-    ${m.stepReward || m.type !== 'flag' ? `<div class="xs dim">сверх: <input style="width:56px;display:inline;padding:3px 5px;font-size:12px" type="number" value="${m.stepReward}" onchange="setM(${i},'stepReward',this.value)"> ₽ за ${m.type === 'pct' ? m.step + '%' : m.type === 'count' ? m.step + ' шт' : rub(m.step)}</div>` : ''}</div>
+  <div class="mrow xs dim b"><span>Показатель</span><span>План</span><span>Доп. ₽</span></div>
+  ${metricsOf(p).map((m, i) => `<div class="mrow"><div><div class="sm b">${m.icon} ${esc(m.name)}</div><div class="xs dim">${m.type === 'money' ? 'премия считается в %' : m.reward ? 'доп. премия' : 'только рейтинг'}</div></div>
     <input type="number" value="${m.plan}" ${m.type === 'flag' ? 'disabled' : ''} onchange="setM(${i},'plan',this.value)">
-    <input type="number" value="${m.reward}" onchange="setM(${i},'reward',this.value)"></div>`).join('')}
+    <input type="number" value="${m.reward}" ${m.type === 'money' ? 'disabled' : ''} onchange="setM(${i},'reward',this.value)"></div>`).join('')}
   </div>
-  <div class="card row between"><span class="b">Максимум премии за смену</span><span class="xb">${rub(metricsOf(p).reduce((a, m) => a + m.reward, 0))}</span></div>
+  <div class="xs dim" style="margin:0 4px 12px">«Доп. ₽» — разовая доплата за выполнение показателя сверх процента с выручки. По умолчанию 0: показатель влияет только на рейтинг.</div>
   <button class="btn ghost" onclick="if(confirm('Вернуть планы по умолчанию?')){S.points[UI.mpoint].metrics=defaultMetrics(UI.mpoint);save();render()}">Сбросить планы по умолчанию</button>`;
 }
+function setB(k, v){ S.points[UI.mpoint].bonus[k] = Math.max(0, +String(v).replace(',', '.') || 0); save(); toast('Сохранено'); render(); }
 function setM(i, k, v){ S.points[UI.mpoint].metrics[i][k] = Math.max(0, +v || 0); save(); toast('Сохранено'); render(); }
 function mTeam(){
   const p = UI.mpoint, team = S.staff.filter(s => s.point === p);
