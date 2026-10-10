@@ -1,0 +1,46 @@
+{
+  "_comment": "Скопируй в config.json и заполни. config.json в git не коммитить: там пароль.",
+  "server": {
+    "url": "https://ВАШ-СЕРВЕР.iiko.it",
+    "login": "api_user",
+    "password": "********",
+    "verify_ssl": true
+  },
+  "fields": {
+    "_comment": "Имена полей OLAP. Проверить командой: python probe.py",
+    "date": "OpenDate.Typed",
+    "department": "Department",
+    "cashier": "Cashier",
+    "check": ["SessionNum", "OrderNum"],
+    "group": "DishGroup",
+    "dish": "DishName",
+    "revenue": "DishDiscountSumInt",
+    "amount": "DishAmountInt"
+  },
+  "extra_filters": {
+    "OrderDeleted": {"filterType": "IncludeValues", "values": ["NOT_DELETED"]},
+    "DeletedWithWriteoff": {"filterType": "IncludeValues", "values": ["NOT_DELETED"]}
+  },
+  "points": {
+    "bh": {
+      "department": "Burger Heroes Внуково",
+      "rules": {
+        "drink":   {"type": "pct",   "groups": ["Напитки", "Холодные напитки", "Горячие напитки"]},
+        "sauce":   {"type": "pct",   "groups": ["Соусы", "Допы"]},
+        "dessert": {"type": "pct",   "groups": ["Закуски", "Десерты"]},
+        "combo":   {"type": "pct",   "dish_contains": ["комбо"]},
+        "size":    {"type": "pct",   "dish_contains": [" L", "большой", "большая"]},
+        "month":   {"type": "count", "dishes": ["Бургер месяца"]}
+      }
+    },
+    "mo": {
+      "department": "Мо Бар Внуково",
+      "rules": {
+        "size":    {"type": "pct",   "dish_contains": [" L", "0,4", "0.4"]},
+        "dessert": {"type": "pct",   "groups": ["Десерты", "Выпечка"]},
+        "syrup":   {"type": "pct",   "groups": ["Сиропы", "Добавки"]},
+        "month":   {"type": "count", "dishes": ["Напиток месяца"]}
+      }
+    }
+  }
+}
